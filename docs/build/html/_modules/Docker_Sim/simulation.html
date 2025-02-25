@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docker_Sim.simulation &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">Docker_Sim.simulation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for Docker_Sim.simulation</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">functions</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">f</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">param</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">currents</span><span class="p">,</span>
+    <span class="n">d_centerAct</span><span class="p">,</span>
+    <span class="n">d_outerAct</span><span class="p">,</span>
+    <span class="n">fields</span><span class="p">,</span>
+    <span class="n">fnamehead</span><span class="p">,</span>
+    <span class="n">h_electrode</span><span class="p">,</span>
+    <span class="n">n_electrodes</span><span class="p">,</span>
+    <span class="n">names</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simnibs</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_tools</span><span class="p">,</span> <span class="n">sim_struct</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;planningtool&quot;</span><span class="p">)</span>
+<span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">current_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="run_simulation">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.simulation.run_simulation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_simulation</span><span class="p">(</span><span class="n">pathfem_modif</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assemble the head model from multiple mesh files, place electrodes, and run a tDCS simulation.</span>
+
+<span class="sd">    This function:</span>
+<span class="sd">        1. Loads partial meshes (skin, skull, isolation, electrodes) from files in `pathfem_modif`.</span>
+<span class="sd">        2. Joins and connects them into a single Msh object.</span>
+<span class="sd">        3. Retags certain parts to match simulation requirements for SimNIBS.</span>
+<span class="sd">        4. Creates a SimNIBS SESSION object, sets up electrodes, and calls the solver.</span>
+<span class="sd">        5. Cleans up intermediate files, leaving only key outputs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pathfem_modif : pathlib.Path</span>
+<span class="sd">        A path object indicating where the mesh files and output should be read/written.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        The function writes simulation outputs to files in `pathfem_modif`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Assembling head model:&quot;</span><span class="p">)</span>
+
+    <span class="n">mesh_without_skin_and_skull</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;mesh_without_skull_and_skin.msh&quot;</span><span class="p">))</span>
+
+    <span class="n">skull_ref_with_elec_and_isolation</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skull_ref_with_elec_and_isolation.msh&quot;</span><span class="p">))</span>
+
+    <span class="n">skull</span> <span class="o">=</span> <span class="n">skull_ref_with_elec_and_isolation</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1005</span><span class="p">])</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">retag</span><span class="p">(</span><span class="n">skull</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">retag</span><span class="p">(</span><span class="n">skull</span><span class="p">,</span> <span class="mi">1005</span><span class="p">,</span> <span class="mi">1007</span><span class="p">)</span>
+
+    <span class="c1"># subtracted skin</span>
+    <span class="n">skin</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;mesh_skin_with_hole_fixed_for_everything.msh&quot;</span><span class="p">))</span>
+    <span class="n">skin</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">skin</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span>
+
+    <span class="n">elec</span> <span class="o">=</span> <span class="n">skull_ref_with_elec_and_isolation</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">(</span>
+        <span class="p">[</span><span class="mi">501</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">,</span> <span class="mi">505</span><span class="p">,</span> <span class="mi">1501</span><span class="p">,</span> <span class="mi">1502</span><span class="p">,</span> <span class="mi">1503</span><span class="p">,</span> <span class="mi">1504</span><span class="p">,</span> <span class="mi">1505</span><span class="p">,</span> <span class="mi">2101</span><span class="p">,</span> <span class="mi">2102</span><span class="p">,</span> <span class="mi">2103</span><span class="p">,</span> <span class="mi">2104</span><span class="p">,</span> <span class="mi">2105</span><span class="p">])</span>
+
+    <span class="c1"># subtracted isolation</span>
+    <span class="n">isolation</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_with_hole_fixed_for_electrodes_and_skull.msh&quot;</span><span class="p">))</span>
+    <span class="n">isolation</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">isolation</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span>
+    <span class="n">isolation</span><span class="o">.</span><span class="n">reconstruct_unique_surface</span><span class="p">()</span>
+
+    <span class="n">mesh_stacked</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">join_and_connect</span><span class="p">(</span><span class="n">mesh_without_skin_and_skull</span><span class="p">,</span> <span class="n">skull</span><span class="p">)</span>
+    <span class="n">mesh_stacked</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">join_and_connect</span><span class="p">(</span><span class="n">mesh_stacked</span><span class="p">,</span> <span class="n">isolation</span><span class="p">)</span>
+    <span class="n">mesh_stacked</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">join_and_connect</span><span class="p">(</span><span class="n">mesh_stacked</span><span class="p">,</span> <span class="n">elec</span><span class="p">)</span>
+    <span class="n">mesh_stacked</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">join_and_connect</span><span class="p">(</span><span class="n">mesh_stacked</span><span class="p">,</span> <span class="n">skin</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Checking shared nodes</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Checking shared nodes:&quot;</span><span class="p">)</span>
+    <span class="n">tag_pairs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">&quot;skin_skull&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;skin_csf&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;skin_eyes&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">506</span><span class="p">,</span> <span class="s2">&quot;skin_iso&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">506</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">&quot;iso_skull&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">506</span><span class="p">,</span> <span class="mi">501</span><span class="p">,</span> <span class="s2">&quot;iso_elec1&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">506</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="s2">&quot;iso_elec2&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">506</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="s2">&quot;iso_elec3&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">506</span><span class="p">,</span> <span class="mi">504</span><span class="p">,</span> <span class="s2">&quot;iso_elec4&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">506</span><span class="p">,</span> <span class="mi">505</span><span class="p">,</span> <span class="s2">&quot;iso_elec5&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">501</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">&quot;skull_elec1&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">502</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">&quot;skull_elec2&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">503</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">&quot;skull_elec3&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">504</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">&quot;skull_elec4&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">505</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">&quot;skull_elec5&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Loop through each pair and log the results</span>
+    <span class="k">for</span> <span class="n">tag1</span><span class="p">,</span> <span class="n">tag2</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tag_pairs</span><span class="p">:</span>
+        <span class="n">shared_nodes</span> <span class="o">=</span> <span class="n">mesh_stacked</span><span class="o">.</span><span class="n">find_shared_nodes</span><span class="p">([</span><span class="n">tag1</span><span class="p">,</span> <span class="n">tag2</span><span class="p">])</span>
+        <span class="n">count_shared_nodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shared_nodes</span><span class="p">)</span> <span class="k">if</span> <span class="n">shared_nodes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;shared_nodes_</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">count_shared_nodes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Starting simulation</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting simulation&quot;</span><span class="p">)</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">sim_struct</span><span class="o">.</span><span class="n">SESSION</span><span class="p">()</span>
+    <span class="n">S</span><span class="o">.</span><span class="n">pathfem</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span><span class="p">)</span>
+    <span class="n">S</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="n">fields</span>
+
+    <span class="n">tdcslist</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">add_tdcslist</span><span class="p">()</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">currents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">currents</span><span class="p">)</span>
+
+    <span class="n">elec_names</span> <span class="o">=</span> <span class="n">names</span>
+
+    <span class="c1"># pre-defined for one electrodes position just to test!!!</span>
+    <span class="n">elec_centres</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mf">58.90757978</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.15420753</span><span class="p">,</span> <span class="mf">60.45319494</span><span class="p">],</span>
+                    <span class="p">[</span><span class="o">-</span><span class="mf">59.01373406078079</span><span class="p">,</span> <span class="mf">15.216413733068805</span><span class="p">,</span> <span class="mf">58.689740352466536</span><span class="p">],</span>
+                    <span class="p">[</span><span class="o">-</span><span class="mf">55.40858409952824</span><span class="p">,</span> <span class="o">-</span><span class="mf">29.881348421700686</span><span class="p">,</span> <span class="mf">60.11295351094711</span><span class="p">],</span>
+                    <span class="p">[</span><span class="o">-</span><span class="mf">43.33297514258787</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.621862902615938</span><span class="p">,</span> <span class="mf">77.28400176854188</span><span class="p">],</span>
+                    <span class="p">[</span><span class="o">-</span><span class="mf">66.49744938552507</span><span class="p">,</span> <span class="o">-</span><span class="mf">8.660316015302419</span><span class="p">,</span> <span class="mf">38.48076093271303</span><span class="p">]]</span>
+
+    <span class="c1"># elec_centres = [[x * 10 for x in sublist] for sublist in elec_centres]</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_electrodes</span><span class="p">):</span>
+        <span class="n">elec</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">add_electrode</span><span class="p">()</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">elec_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">channelnr</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="s1">&#39;plane&#39;</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">centre</span> <span class="o">=</span> <span class="n">elec_centres</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="s1">&#39;ellipse&#39;</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">elec</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">d_centerAct</span><span class="p">,</span> <span class="n">d_centerAct</span><span class="p">]</span>
+            <span class="n">elec</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="p">[</span><span class="n">h_electrode</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">elec</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">d_outerAct</span><span class="p">,</span> <span class="n">d_outerAct</span><span class="p">]</span>
+            <span class="n">elec</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="p">[</span><span class="n">h_electrode</span><span class="p">]</span>
+
+            <span class="c1"># pre-defined!!!!</span>
+    <span class="n">elec_surfaces</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2101</span><span class="p">,</span> <span class="mi">2102</span><span class="p">,</span> <span class="mi">2103</span><span class="p">,</span> <span class="mi">2104</span><span class="p">,</span> <span class="mi">2105</span><span class="p">]</span>
+
+    <span class="n">S</span><span class="o">.</span><span class="n">poslists</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">currents</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">poslists</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">currents</span><span class="p">[:</span><span class="n">n_electrodes</span><span class="p">]</span>
+    <span class="n">S</span><span class="o">.</span><span class="n">poslists</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">electrode</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">poslists</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">electrode</span><span class="p">[:</span><span class="n">n_electrodes</span><span class="p">]</span>
+    <span class="n">elec_surfaces</span> <span class="o">=</span> <span class="n">elec_surfaces</span><span class="p">[:</span><span class="n">n_electrodes</span><span class="p">]</span>
+
+    <span class="n">mesh_core_elec2</span> <span class="o">=</span> <span class="n">mesh_stacked</span>
+
+    <span class="c1"># skull as skin , skin as skull, isolation as Electrode Rubber</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">retag</span><span class="p">(</span><span class="n">mesh_core_elec2</span><span class="p">,</span> <span class="mi">1005</span><span class="p">,</span> <span class="mi">1004</span><span class="p">)</span>  <span class="c1"># skin to empty tag</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">retag</span><span class="p">(</span><span class="n">mesh_core_elec2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>  <span class="c1"># skin to empty tag</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">retag</span><span class="p">(</span><span class="n">mesh_core_elec2</span><span class="p">,</span> <span class="mi">1007</span><span class="p">,</span> <span class="mi">1005</span><span class="p">)</span>  <span class="c1"># skull to skin</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">retag</span><span class="p">(</span><span class="n">mesh_core_elec2</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>  <span class="c1"># skull to skin</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">retag</span><span class="p">(</span><span class="n">mesh_core_elec2</span><span class="p">,</span> <span class="mi">1004</span><span class="p">,</span> <span class="mi">1007</span><span class="p">)</span>  <span class="c1"># skin to skull</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">retag</span><span class="p">(</span><span class="n">mesh_core_elec2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>  <span class="c1"># skin to skull</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">retag</span><span class="p">(</span><span class="n">mesh_core_elec2</span><span class="p">,</span> <span class="mi">1506</span><span class="p">,</span> <span class="mi">1004</span><span class="p">)</span>  <span class="c1"># isolation to ElecRubber</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">retag</span><span class="p">(</span><span class="n">mesh_core_elec2</span><span class="p">,</span> <span class="mi">506</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>  <span class="c1"># isolation to ElecRubber</span>
+
+    <span class="c1"># export edited mesh and load</span>
+    <span class="n">mesh_core_elec2</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="n">fnamehead</span><span class="p">))</span>
+
+    <span class="n">S</span><span class="o">.</span><span class="n">fnamehead</span> <span class="o">=</span> <span class="n">fnamehead</span>
+
+    <span class="n">f</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">elec_surfaces</span><span class="p">)</span>
+
+    <span class="c1"># Remove Unnecessary files :</span>
+
+    <span class="n">fileList</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/*.*&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Iterate over the list of filepaths &amp; remove each file.</span>
+    <span class="k">for</span> <span class="n">filePath</span> <span class="ow">in</span> <span class="n">fileList</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;TDCS_1&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filePath</span> <span class="ow">and</span> <span class="s2">&quot;edited_mesh.msh&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filePath</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filePath</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error while deleting file </span><span class="si">{</span><span class="n">filePath</span><span class="si">}</span><span class="s2">, Error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--- </span><span class="si">%s</span><span class="s2"> seconds ---&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="simulate">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.simulation.simulate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Top-level function to create electrodes, isolation, and run a tDCS simulation.</span>
+
+<span class="sd">    This function:</span>
+<span class="sd">        1. Calls create_elec_and_iso() from the `functions` module to prepare meshes and isolation geometry, returning the path to the modified directory.</span>
+<span class="sd">        2. Calls run_simulation() to assemble the final mesh, place electrodes, and run the tDCS simulation.</span>
+<span class="sd">        3. Writes an info file summarizing the simulation parameters via write_info().</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Results are written to files in the path returned by create_elec_and_iso().</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pathfem_modif</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_elec_and_iso</span><span class="p">()</span>
+    <span class="n">run_simulation</span><span class="p">(</span><span class="n">pathfem_modif</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write_info</span><span class="p">(</span><span class="n">pathfem_modif</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--- </span><span class="si">%s</span><span class="s2"> seconds in total ---&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

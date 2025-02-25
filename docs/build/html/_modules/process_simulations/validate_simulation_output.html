@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>process_simulations.validate_simulation_output &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">process_simulations.validate_simulation_output</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for process_simulations.validate_simulation_output</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides functions to validate the success and results of simulations for a given configuration and patient.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+<span class="sd">    - validate_simulations_success : Validates the success of simulations by checking the success status of each simulation.</span>
+<span class="sd">    - validate_simulations_result : Placeholder function for validating simulation results.</span>
+<span class="sd">    - collect_validation_results : Collects validation results and updates them with magnitude statistics.</span>
+<span class="sd">    - collect_validation_results_for_roi : Collects validation results for a specific ROI and updates them with magnitude statistics for different tags.</span>
+
+<span class="sd">Dependencies</span>
+<span class="sd">------------</span>
+<span class="sd">    - json : For reading and writing JSON files.</span>
+<span class="sd">    - os : For file and directory operations.</span>
+<span class="sd">    - numpy : For numerical operations and statistics.</span>
+<span class="sd">    - database_params : Custom module for database parameters and paths.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">utils</span>
+
+
+<div class="viewcode-block" id="validate_simulations_success">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.validate_simulation_output.validate_simulations_success">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_simulations_success</span><span class="p">(</span><span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validates the success of simulations for a given configuration and patient.</span>
+
+<span class="sd">    This function reads the electrode positions from a JSON file and checks the success status of each simulation.</span>
+<span class="sd">    The results are saved to a validation results JSON file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        Configuration ID.</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        Patient ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Path to the electrode positions file</span>
+    <span class="n">electrode_position_file</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;electrode&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;electrode_positions_</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">.json&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">electrode_position_file</span><span class="p">)</span>
+    <span class="n">electrode_count</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Metadata&#39;</span><span class="p">][</span><span class="s1">&#39;Number&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Initializing validation results dictionary</span>
+    <span class="n">validation_results</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;config_id&#39;</span><span class="p">:</span> <span class="n">_config_id</span><span class="p">,</span>
+            <span class="s1">&#39;patient_id&#39;</span><span class="p">:</span> <span class="n">_patient_id</span><span class="p">,</span>
+            <span class="s1">&#39;electrode_count&#39;</span><span class="p">:</span> <span class="n">electrode_count</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;successful_simulation_indices&quot;</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">}</span>
+
+    <span class="c1"># List to store indices of successful simulations</span>
+    <span class="n">successful_indices</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Iterate over each electrode and check the success status of the simulation</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">electrode_count</span><span class="p">):</span>
+        <span class="n">sim_info_file</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_sim_output_path</span><span class="p">(</span><span class="n">_config_id</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;sim_info_Electrode_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.json&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sim_info_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">validation_results</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;Electrode_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span> <span class="s2">&quot;valid&quot;</span><span class="p">:</span> <span class="s2">&quot;null&quot;</span><span class="p">,</span> <span class="s2">&quot;median_magnitude&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;mean_magnitude&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;percentile_95&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sim_info</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">sim_info_file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sim_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="n">validation_results</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;Electrode_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span> <span class="s2">&quot;null&quot;</span><span class="p">,</span> <span class="s1">&#39;median_magnitude&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;mean_magnitude&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;percentile_95&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">validation_results</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;Electrode_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span> <span class="s2">&quot;null&quot;</span><span class="p">,</span> <span class="s1">&#39;median_magnitude&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;mean_magnitude&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;percentile_95&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+                <span class="c1"># Add the index to the list</span>
+                <span class="n">successful_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="c1"># Adding the list of successful indices to the validation results</span>
+    <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;successful_simulation_indices&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">successful_indices</span>
+
+    <span class="c1"># Saving the validation results to a JSON file</span>
+    <span class="n">save_path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span>
+    <span class="n">save_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">validation_results</span><span class="p">,</span> <span class="n">save_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_validation_results.json&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="validate_simulations_result">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.validate_simulation_output.validate_simulations_result">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_simulations_result</span><span class="p">(</span><span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Placeholder function for validating simulation results.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        Configuration ID.</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        Patient ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;validate_simulations_result: NOT IMPLEMENTED YET&quot;</span><span class="p">)</span>
+    <span class="c1"># raise NotImplementedError</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="collect_validation_results">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.validate_simulation_output.collect_validation_results">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">collect_validation_results</span><span class="p">(</span><span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Collects validation results for a given configuration and patient.</span>
+
+<span class="sd">    This function reads the simulation data and updates the validation results with magnitude statistics.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        Configuration ID.</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        Patient ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collecting validation results for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">data_file_path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_data.json&quot;</span>
+    <span class="n">validation_file_path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span>
+
+    <span class="n">validation_results</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">validation_file_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_validation_results.json&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check if the data file exists</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">data_file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">data_file_path</span><span class="si">}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Load the JSON data file</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">data_file_path</span><span class="p">)</span>
+
+    <span class="c1"># Iterate over all electrodes and collect magnitude values</span>
+    <span class="k">for</span> <span class="n">electrode</span><span class="p">,</span> <span class="n">electrode_data</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Electrodes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">combined_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">magnitude</span> <span class="ow">in</span> <span class="n">electrode_data</span><span class="p">[</span><span class="s1">&#39;Magnitude&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">combined_values</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+        <span class="n">median_magnitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">combined_values</span><span class="p">)</span>
+        <span class="n">mean_magnitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">combined_values</span><span class="p">)</span>
+        <span class="n">percentile_95</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">combined_values</span><span class="p">,</span> <span class="mi">95</span><span class="p">)</span>
+        <span class="n">max_magnitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">combined_values</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;=== Electrode: </span><span class="si">{</span><span class="n">electrode</span><span class="si">}</span><span class="s2"> ===&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Median: </span><span class="si">{</span><span class="n">median_magnitude</span><span class="si">}</span><span class="s2">, Mean: </span><span class="si">{</span><span class="n">mean_magnitude</span><span class="si">}</span><span class="s2">, 95th percentile: </span><span class="si">{</span><span class="n">percentile_95</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;median_magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">median_magnitude</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;mean_magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_magnitude</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;percentile_95&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">percentile_95</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;max_magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_magnitude</span>
+
+    <span class="c1"># Save the updated validation results to a JSON file</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">validation_results</span><span class="p">,</span> <span class="n">validation_file_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_validation_results.json&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="collect_validation_results_for_roi">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.validate_simulation_output.collect_validation_results_for_roi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">collect_validation_results_for_roi</span><span class="p">(</span><span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_roi_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Collects validation results for a specific ROI (Region of Interest) for a given configuration and patient.</span>
+
+<span class="sd">    This function reads the simulation data and updates the validation results with magnitude statistics for different tags.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        Configuration ID.</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        Patient ID.</span>
+<span class="sd">    _roi_id : str</span>
+<span class="sd">        ROI ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collecting validation results for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">data_file_path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span> <span class="o">/</span> <span class="n">_roi_id</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_roi_data.json&quot;</span>
+    <span class="n">validation_file_path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span> <span class="o">/</span> <span class="n">_roi_id</span>
+
+    <span class="n">validation_results</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Initialize validation_results</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">data_file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">data_file_path</span><span class="si">}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span>
+
+    <span class="c1"># Load the JSON data file</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">data_file_path</span><span class="p">)</span>
+
+    <span class="n">volume_tags</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span> <span class="s2">&quot;9&quot;</span><span class="p">,</span> <span class="s2">&quot;10&quot;</span><span class="p">}</span>
+    <span class="c1"># mesh_tags = {&quot;1001&quot;, &quot;1002&quot;, &quot;1003&quot;, &quot;1006&quot;, &quot;1008&quot;, &quot;1009&quot;, &quot;1010&quot;}</span>
+
+    <span class="c1"># Iterate over all electrodes and collect magnitude values</span>
+    <span class="k">for</span> <span class="n">electrode</span><span class="p">,</span> <span class="n">electrode_data</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Electrodes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">combined_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Grey_Matter_Percentile</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Grey_Matter_max</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Grey_Matter_Median</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Grey_Matter_Mean</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">spongy_bone_Percentile</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">spongy_bone_max</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">spongy_bone_Median</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">spongy_bone_Mean</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Grey_Matter_Percentile_mesh</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Grey_Matter_max_mesh</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Grey_Matter_Median_mesh</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">Grey_Matter_Mean_mesh</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">magnitude</span> <span class="ow">in</span> <span class="n">electrode_data</span><span class="p">[</span><span class="s1">&#39;Magnitude&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">volume_tags</span><span class="p">:</span>
+                <span class="n">combined_values</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span><span class="p">:</span>
+                    <span class="n">Grey_Matter_Percentile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">magnitude</span><span class="p">,</span> <span class="mi">95</span><span class="p">)</span>
+                    <span class="n">Grey_Matter_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+                    <span class="n">Grey_Matter_Median</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+                    <span class="n">Grey_Matter_Mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;8&quot;</span><span class="p">:</span>
+                    <span class="n">spongy_bone_Percentile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">magnitude</span><span class="p">,</span> <span class="mi">95</span><span class="p">)</span>
+                    <span class="n">spongy_bone_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+                    <span class="n">spongy_bone_Median</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+                    <span class="n">spongy_bone_Mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;1002&quot;</span><span class="p">:</span>
+                <span class="n">Grey_Matter_Percentile_mesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">magnitude</span><span class="p">,</span> <span class="mi">95</span><span class="p">)</span>
+                <span class="n">Grey_Matter_max_mesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+                <span class="n">Grey_Matter_Median_mesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+                <span class="n">Grey_Matter_Mean_mesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">magnitude</span><span class="p">)</span>
+
+
+        <span class="n">median_magnitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">combined_values</span><span class="p">)</span>
+        <span class="n">mean_magnitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">combined_values</span><span class="p">)</span>
+        <span class="n">percentile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">combined_values</span><span class="p">,</span> <span class="mi">95</span><span class="p">)</span>
+        <span class="n">max_magnitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">combined_values</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;=== Electrode: </span><span class="si">{</span><span class="n">electrode</span><span class="si">}</span><span class="s2"> ===&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Median: </span><span class="si">{</span><span class="n">median_magnitude</span><span class="si">}</span><span class="s2">, Mean: </span><span class="si">{</span><span class="n">mean_magnitude</span><span class="si">}</span><span class="s2">, percentile: </span><span class="si">{</span><span class="n">percentile</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Initialize a new dictionary for this electrode</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Median_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">median_magnitude</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Mean_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_magnitude</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;percentile_95&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">percentile</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Max_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_magnitude</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Grey_Matter_Percentile_95_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Grey_Matter_Percentile</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Grey_Matter_Max_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Grey_Matter_max</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Grey_Matter_Median_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Grey_Matter_Median</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Grey_Matter_Mean_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Grey_Matter_Mean</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Grey_Matter_Percentile_95_Mesh_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Grey_Matter_Percentile_mesh</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Grey_Matter_Max_Mesh_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Grey_Matter_max_mesh</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Grey_Matter_Median_Mesh_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Grey_Matter_Median_mesh</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Grey_Matter_Mean_Mesh_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Grey_Matter_Mean_mesh</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Spongy_Bone_Percentile_95_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spongy_bone_Percentile</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Spongy_Bone_Max_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spongy_bone_max</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Spongy_Bone_Median_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spongy_bone_Median</span>
+        <span class="n">validation_results</span><span class="p">[</span><span class="n">electrode</span><span class="p">][</span><span class="s1">&#39;Spongy_Bone_Mean_Magnitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spongy_bone_Mean</span>
+
+    <span class="c1"># Save the updated validation results to a JSON file</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">validation_results</span><span class="p">,</span> <span class="n">validation_file_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_roi_validation_results.json&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

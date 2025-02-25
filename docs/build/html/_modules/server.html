@@ -1,0 +1,461 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>server &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">server</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for server</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides functions to handle various data processing tasks</span>
+<span class="sd">related to simulations for different configurations and patients.</span>
+
+<span class="sd">It offers REST endpoints for retrieving and updating 3D mesh data, electrode</span>
+<span class="sd">positions, ROI data, and simulated results for a variety of configurations</span>
+<span class="sd">and patient IDs.</span>
+
+<span class="sd">Dependencies include:</span>
+<span class="sd">    - json: For reading and writing JSON files.</span>
+<span class="sd">    - os: For file and directory operations.</span>
+<span class="sd">    - flask: For creating the web server and handling HTTP requests.</span>
+<span class="sd">    - database_params (in @p utils): Custom module for database parameters and paths.</span>
+<span class="sd">    - waitress: For serving the Flask application.</span>
+
+<span class="sd">Routes Provided:</span>
+<span class="sd">    - /3d/configuration/&lt;_patient_id&gt; (GET): Retrieves original 3D mesh data</span>
+<span class="sd">    - /data/elect_pos/&lt;_patient_id&gt;/&lt;_config_id&gt; (POST/GET): Manages electrode positions</span>
+<span class="sd">    - /data/validation/&lt;_patient_id&gt;/&lt;_config_id&gt; (GET): Retrieves validation results</span>
+<span class="sd">    - /data/roi/&lt;_patient_id&gt;/&lt;_roi_id&gt; (POST): Receives ROI data</span>
+<span class="sd">    - /3d/configuration/skin/&lt;_patient_id&gt; (GET): Retrieves skin mesh data</span>
+<span class="sd">    - /3d/simulated/&lt;_patient_id&gt;/&lt;_config_id&gt; (GET): Retrieves simulated 3D mesh data</span>
+<span class="sd">    - /data/simulated/&lt;_patient_id&gt;/&lt;_config_id&gt;/&lt;_roi_id&gt; (GET): Retrieves simulated data for a specified ROI</span>
+<span class="sd">    - /data/interpolated/&lt;_patient_id&gt;/&lt;_config_id&gt;/&lt;_roi_id&gt;/&lt;_interpolation_id&gt; (POST): Receives interpolated data</span>
+<span class="sd">    - /reached (GET): Returns a simple status response</span>
+<span class="sd">    - /run_simulations (POST): Placeholder to start simulations</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">#!/usr/bin/env python</span>
+<span class="c1"># encoding: utf-8</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">jsonify</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">send_file</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">utils</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="get_default_mesh">
+<a class="viewcode-back" href="../server.html#server.get_default_mesh">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/3d/configuration/&lt;_patient_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_default_mesh</span><span class="p">(</span><span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Response</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the original 3D mesh data for a given patient.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        The patient ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple containing:</span>
+<span class="sd">            - A Flask Response object sending the compressed .zlib file</span>
+<span class="sd">            - An HTTP status code (200 if successful)</span>
+<span class="sd">            - A dictionary of headers, here indicating &#39;Decompressed-Size&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading original mesh for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;original&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span>
+    <span class="n">path_json</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">_original_3d_data.json&quot;</span>
+    <span class="n">path_zlib</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">_original_compressed_3d_data.zlib&quot;</span>
+
+    <span class="n">decompressed_size</span> <span class="o">=</span> <span class="n">path_json</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span>
+
+    <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">path_zlib</span><span class="p">,</span> <span class="n">as_attachment</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;Decompressed-Size&#39;</span><span class="p">:</span> <span class="n">decompressed_size</span><span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="receive_electrode_positions">
+<a class="viewcode-back" href="../server.html#server.receive_electrode_positions">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/data/elect_pos/&lt;_patient_id&gt;/&lt;_config_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">receive_electrode_positions</span><span class="p">(</span><span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Receives and saves electrode positions for a given patient and configuration.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        The patient ID.</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        The configuration ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        A confirmation message indicating the positions were received.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">json_data</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;electrode&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;electrode_positions_</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">.json&quot;</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">json_data</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+
+    <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Electrode positions for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2"> received!&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">message</span></div>
+
+
+
+<div class="viewcode-block" id="get_electrode_area">
+<a class="viewcode-back" href="../server.html#server.get_electrode_area">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/data/elect_pos/&lt;_patient_id&gt;/&lt;_config_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_electrode_area</span><span class="p">(</span><span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the electrode positions for a given patient and configuration.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        The patient ID.</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        The configuration ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        A dictionary containing the electrode positions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;electrode&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;electrode_positions_</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">.json&quot;</span>
+    <span class="n">elect_pos</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending electrode positions for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">elect_pos</span></div>
+
+
+
+<div class="viewcode-block" id="get_validation">
+<a class="viewcode-back" href="../server.html#server.get_validation">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/data/validation/&lt;_patient_id&gt;/&lt;_config_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_validation</span><span class="p">(</span><span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves validation results for a given patient and configuration.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        The patient ID.</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        The configuration ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        A dictionary containing the validation results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_validation_results.json&quot;</span>
+    <span class="n">validation_results</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending validation results for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">validation_results</span></div>
+
+
+
+<div class="viewcode-block" id="receive_roi_data">
+<a class="viewcode-back" href="../server.html#server.receive_roi_data">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/data/roi/&lt;_patient_id&gt;/&lt;_roi_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">receive_roi_data</span><span class="p">(</span><span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_roi_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Receives and saves ROI (Region of Interest) data for a given patient and ROI ID.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        The patient ID.</span>
+<span class="sd">    _roi_id : str</span>
+<span class="sd">        The ROI ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        A confirmation message indicating the ROI data was received.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">json_data</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;New ROI Data for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2"> received!&quot;</span><span class="p">)</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;roi&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_roi_bounds.json&quot;</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">json_data</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;ROI Data for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2"> received!&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="get_skin">
+<a class="viewcode-back" href="../server.html#server.get_skin">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/3d/configuration/skin/&lt;_patient_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_skin</span><span class="p">(</span><span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the skin mesh data for a given patient.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        The patient ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Response</span>
+<span class="sd">        A Flask Response object (JSON) containing vertices and triangles for the skin mesh.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading skin_mesh for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;original&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span>
+
+    <span class="n">vertices_path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">_vertices.json&quot;</span>
+    <span class="n">skin_path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">_skin_mesh.json&quot;</span>
+    <span class="n">vertices</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">vertices_path</span><span class="p">)</span>
+    <span class="n">skin_mesh</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">skin_path</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending skin_mesh for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;vertices&#39;</span><span class="p">:</span> <span class="n">vertices</span><span class="p">,</span> <span class="s1">&#39;triangles&#39;</span><span class="p">:</span> <span class="n">skin_mesh</span><span class="p">})</span></div>
+
+
+
+<div class="viewcode-block" id="get_mesh">
+<a class="viewcode-back" href="../server.html#server.get_mesh">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/3d/simulated/&lt;_patient_id&gt;/&lt;_config_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_mesh</span><span class="p">(</span><span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Response</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the simulated 3D mesh data for a given patient and configuration.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        The patient ID.</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        The configuration ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple containing:</span>
+<span class="sd">            - A Flask Response object sending the compressed 3D .zlib file</span>
+<span class="sd">            - HTTP status code</span>
+<span class="sd">            - A header dict containing the &#39;Decompressed-Size&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading mesh for patient id </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="n">path_json</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_3d_data.json&quot;</span>
+    <span class="n">path_zlib</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_compressed_3d_data.zlib&quot;</span>
+
+    <span class="n">decompressed_size</span> <span class="o">=</span> <span class="n">path_json</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span>
+
+    <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">path_zlib</span><span class="p">,</span> <span class="n">as_attachment</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;Decompressed-Size&#39;</span><span class="p">:</span> <span class="n">decompressed_size</span><span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="get_data">
+<a class="viewcode-back" href="../server.html#server.get_data">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/data/simulated/&lt;_patient_id&gt;/&lt;_config_id&gt;/&lt;_roi_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_roi_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Response</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the simulated data for a given patient, configuration, and ROI.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        The patient ID.</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        The configuration ID.</span>
+<span class="sd">    _roi_id : str</span>
+<span class="sd">        The ROI ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple containing:</span>
+<span class="sd">            - A Flask Response object sending the compressed ROI .zlib file</span>
+<span class="sd">            - HTTP status code</span>
+<span class="sd">            - A header dict with the &#39;Decompressed-Size&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading data for patient id </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="n">path_roi</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span> <span class="o">/</span> <span class="n">_roi_id</span>
+
+    <span class="n">path_json</span> <span class="o">=</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_roi_data.json&quot;</span>
+    <span class="n">path_zlib</span> <span class="o">=</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_compressed_roi_data.zlib&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sending...&quot;</span><span class="p">)</span>
+    <span class="n">decompressed_size</span> <span class="o">=</span> <span class="n">path_json</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span>
+
+    <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">path_zlib</span><span class="p">,</span> <span class="n">as_attachment</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;Decompressed-Size&#39;</span><span class="p">:</span> <span class="n">decompressed_size</span><span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="receive_interpolated_data">
+<a class="viewcode-back" href="../server.html#server.receive_interpolated_data">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/data/interpolated/&lt;_patient_id&gt;/&lt;_config_id&gt;/&lt;_roi_id&gt;/&lt;_interpolation_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">receive_interpolated_data</span><span class="p">(</span><span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_roi_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_interpolation_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Receives and saves interpolated data for a given patient, configuration, ROI, and interpolation ID.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        The patient ID.</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        The configuration ID.</span>
+<span class="sd">    _roi_id : str</span>
+<span class="sd">        The ROI ID.</span>
+<span class="sd">    _interpolation_id : str</span>
+<span class="sd">        The interpolation ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        A confirmation message indicating the data was received.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">json_data</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;New Interpolated Data received!&quot;</span><span class="p">)</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span> <span class="o">/</span> <span class="n">_roi_id</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_interpolation_id</span><span class="si">}</span><span class="s2">_interpolated_data.json&quot;</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">json_data</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Interpolated Data for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">_interpolation_id</span><span class="si">}</span><span class="s2"> received!&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Interpolated Data for </span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">_interpolation_id</span><span class="si">}</span><span class="s2"> received!&quot;</span></div>
+
+
+<div class="viewcode-block" id="reached">
+<a class="viewcode-back" href="../server.html#server.reached">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/reached&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reached</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple health-check endpoint.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Response</span>
+<span class="sd">        JSON response with &#39;status&#39;: True, and HTTP 200.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}),</span> <span class="mi">200</span></div>
+
+
+<div class="viewcode-block" id="run_simulations">
+<a class="viewcode-back" href="../server.html#server.run_simulations">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/run_simulations&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_simulations</span><span class="p">(</span><span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_roi_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Route to initiate simulations.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        The patient ID.</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        The configuration ID.</span>
+<span class="sd">    _roi_id : str</span>
+<span class="sd">        The ROI ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Response</span>
+<span class="sd">        A JSON response indicating success.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PID:</span><span class="si">{</span><span class="n">_patient_id</span><span class="si">}</span><span class="s2">, CID:</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">, ROIID:</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Data received, simulation started&#39;</span><span class="p">}),</span> <span class="mi">200</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

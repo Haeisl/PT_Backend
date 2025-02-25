@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlanningTool_Backend &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Docker_Sim package" href="Docker_Sim.html" />
+    <link rel="prev" title="Epilepsy Planning Tool - Backend documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">PlanningTool_Backend</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html">Docker_Sim package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html">process_simulations package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html">run_docker_simulations module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="start_backend.html">start_backend module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html">server module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="remove_post_processing_results.html">remove_post_processing_results module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">PlanningTool_Backend</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="planningtool-backend">
+<h1>PlanningTool_Backend<a class="headerlink" href="#planningtool-backend" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Docker_Sim.html">Docker_Sim package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html#module-Docker_Sim.electrodes">electrodes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.electrodes.electrode_placement"><code class="docutils literal notranslate"><span class="pre">electrode_placement()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.electrodes.small_standard_positions"><code class="docutils literal notranslate"><span class="pre">small_standard_positions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html#module-Docker_Sim.functions">functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.compact_bone_back"><code class="docutils literal notranslate"><span class="pre">compact_bone_back()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.compact_bone_to_skin"><code class="docutils literal notranslate"><span class="pre">compact_bone_to_skin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.create_elec_and_iso"><code class="docutils literal notranslate"><span class="pre">create_elec_and_iso()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.distance"><code class="docutils literal notranslate"><span class="pre">distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.find_and_fix_nodes_for_change_new"><code class="docutils literal notranslate"><span class="pre">find_and_fix_nodes_for_change_new()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.find_corners"><code class="docutils literal notranslate"><span class="pre">find_corners()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.find_diagonals"><code class="docutils literal notranslate"><span class="pre">find_diagonals()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.join_and_connect"><code class="docutils literal notranslate"><span class="pre">join_and_connect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.mesh_get_outer_surface"><code class="docutils literal notranslate"><span class="pre">mesh_get_outer_surface()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.msh2_to_simnibs"><code class="docutils literal notranslate"><span class="pre">msh2_to_simnibs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.refine"><code class="docutils literal notranslate"><span class="pre">refine()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.remove_disconnected_nodes"><code class="docutils literal notranslate"><span class="pre">remove_disconnected_nodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.remove_electrodes_volume_from_skin"><code class="docutils literal notranslate"><span class="pre">remove_electrodes_volume_from_skin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.remove_from_mesh"><code class="docutils literal notranslate"><span class="pre">remove_from_mesh()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.remove_skin"><code class="docutils literal notranslate"><span class="pre">remove_skin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.retag"><code class="docutils literal notranslate"><span class="pre">retag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.run_simulation"><code class="docutils literal notranslate"><span class="pre">run_simulation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.volumes_subtraction"><code class="docutils literal notranslate"><span class="pre">volumes_subtraction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.functions.write_info"><code class="docutils literal notranslate"><span class="pre">write_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html#module-Docker_Sim.logging_utils">logging_utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.logging_utils.CenteredFormatter"><code class="docutils literal notranslate"><span class="pre">CenteredFormatter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.logging_utils.CenteredFormatter.format"><code class="docutils literal notranslate"><span class="pre">CenteredFormatter.format()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.logging_utils.MultilineFormatter"><code class="docutils literal notranslate"><span class="pre">MultilineFormatter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.logging_utils.MultilineFormatter.format"><code class="docutils literal notranslate"><span class="pre">MultilineFormatter.format()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.logging_utils.register_excepthook"><code class="docutils literal notranslate"><span class="pre">register_excepthook()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.logging_utils.unregister_excepthook"><code class="docutils literal notranslate"><span class="pre">unregister_excepthook()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html#module-Docker_Sim.param">param</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html#module-Docker_Sim.sim_controller">sim_controller</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.sim_controller.create_sim_info_file"><code class="docutils literal notranslate"><span class="pre">create_sim_info_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.sim_controller.log_warning"><code class="docutils literal notranslate"><span class="pre">log_warning()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.sim_controller.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.sim_controller.print_environment_info"><code class="docutils literal notranslate"><span class="pre">print_environment_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html#module-Docker_Sim.simulation">simulation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.simulation.run_simulation"><code class="docutils literal notranslate"><span class="pre">run_simulation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.simulation.simulate"><code class="docutils literal notranslate"><span class="pre">simulate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html#module-Docker_Sim.svg_to_nodes">svg_to_nodes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.svg_to_nodes.get_point_at"><code class="docutils literal notranslate"><span class="pre">get_point_at()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.svg_to_nodes.multiply_transforms"><code class="docutils literal notranslate"><span class="pre">multiply_transforms()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.svg_to_nodes.points_from_doc"><code class="docutils literal notranslate"><span class="pre">points_from_doc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.svg_to_nodes.points_from_path"><code class="docutils literal notranslate"><span class="pre">points_from_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.svg_to_nodes.rescale_linear"><code class="docutils literal notranslate"><span class="pre">rescale_linear()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.svg_to_nodes.rotate"><code class="docutils literal notranslate"><span class="pre">rotate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Docker_Sim.html#Docker_Sim.svg_to_nodes.svg_to_nodes"><code class="docutils literal notranslate"><span class="pre">svg_to_nodes()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html#module-Docker_Sim">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="process_simulations.html">process_simulations package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html#module-process_simulations.process_3d_functions">process_3d_functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#dependencies">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_3d_functions.create_3d_data"><code class="docutils literal notranslate"><span class="pre">create_3d_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_3d_functions.create_tag_based_dictionary_for_volumes"><code class="docutils literal notranslate"><span class="pre">create_tag_based_dictionary_for_volumes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_3d_functions.create_tag_to_new_index_mapping"><code class="docutils literal notranslate"><span class="pre">create_tag_to_new_index_mapping()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_3d_functions.map_geometry_to_vertex"><code class="docutils literal notranslate"><span class="pre">map_geometry_to_vertex()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html#module-process_simulations.process_data_functions">process_data_functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id1">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id2">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_data_functions.convert_data_to_json"><code class="docutils literal notranslate"><span class="pre">convert_data_to_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_data_functions.create_one_json_data_file"><code class="docutils literal notranslate"><span class="pre">create_one_json_data_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html#module-process_simulations.process_helper_functions">process_helper_functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id3">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id4">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_helper_functions.create_tag_based_dictionary"><code class="docutils literal notranslate"><span class="pre">create_tag_based_dictionary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_helper_functions.create_tag_look_up_table"><code class="docutils literal notranslate"><span class="pre">create_tag_look_up_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_helper_functions.create_tag_look_up_table_default"><code class="docutils literal notranslate"><span class="pre">create_tag_look_up_table_default()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_helper_functions.custom_switch"><code class="docutils literal notranslate"><span class="pre">custom_switch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_helper_functions.custom_switch_default"><code class="docutils literal notranslate"><span class="pre">custom_switch_default()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_helper_functions.is_valid_tag"><code class="docutils literal notranslate"><span class="pre">is_valid_tag()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html#module-process_simulations.process_original_mesh">process_original_mesh</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id5">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id6">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_original_mesh.convert_mesh_to_json"><code class="docutils literal notranslate"><span class="pre">convert_mesh_to_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_original_mesh.create_tag_based_dictionary"><code class="docutils literal notranslate"><span class="pre">create_tag_based_dictionary()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html#module-process_simulations.process_roi_functions">process_roi_functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id7">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id8">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_roi_functions.build_vertex_tag_index_structure"><code class="docutils literal notranslate"><span class="pre">build_vertex_tag_index_structure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_roi_functions.create_roi_mask"><code class="docutils literal notranslate"><span class="pre">create_roi_mask()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_roi_functions.extract_values"><code class="docutils literal notranslate"><span class="pre">extract_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_roi_functions.filter_dict_by_value_count"><code class="docutils literal notranslate"><span class="pre">filter_dict_by_value_count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_roi_functions.get_indices_per_tag_in_roi"><code class="docutils literal notranslate"><span class="pre">get_indices_per_tag_in_roi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_roi_functions.get_tetras_per_vertex_in_roi"><code class="docutils literal notranslate"><span class="pre">get_tetras_per_vertex_in_roi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_roi_functions.get_unique_tetras_in_roi"><code class="docutils literal notranslate"><span class="pre">get_unique_tetras_in_roi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_roi_functions.get_vertices_inside_cube"><code class="docutils literal notranslate"><span class="pre">get_vertices_inside_cube()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_roi_functions.is_cuboid"><code class="docutils literal notranslate"><span class="pre">is_cuboid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_roi_functions.map_data_to_roi"><code class="docutils literal notranslate"><span class="pre">map_data_to_roi()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html#module-process_simulations.process_simulation_output">process_simulation_output</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id9">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id10">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_simulation_output.convert_to_3d"><code class="docutils literal notranslate"><span class="pre">convert_to_3d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_simulation_output.convert_to_data_and_3d"><code class="docutils literal notranslate"><span class="pre">convert_to_data_and_3d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_simulation_output.convert_to_data_for_reference"><code class="docutils literal notranslate"><span class="pre">convert_to_data_for_reference()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_simulation_output.map_simulation_to_roi"><code class="docutils literal notranslate"><span class="pre">map_simulation_to_roi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.process_simulation_output.process_simulation_output"><code class="docutils literal notranslate"><span class="pre">process_simulation_output()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html#module-process_simulations.validate_simulation_output">validate_simulation_output</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id11">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#id12">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.validate_simulation_output.collect_validation_results"><code class="docutils literal notranslate"><span class="pre">collect_validation_results()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.validate_simulation_output.collect_validation_results_for_roi"><code class="docutils literal notranslate"><span class="pre">collect_validation_results_for_roi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.validate_simulation_output.validate_simulations_result"><code class="docutils literal notranslate"><span class="pre">validate_simulations_result()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="process_simulations.html#process_simulations.validate_simulation_output.validate_simulations_success"><code class="docutils literal notranslate"><span class="pre">validate_simulations_success()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html#module-process_simulations">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.database_helper">database_helper</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.database_helper.CODE_PATH"><code class="docutils literal notranslate"><span class="pre">CODE_PATH</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.database_helper.DATABASE_DIR"><code class="docutils literal notranslate"><span class="pre">DATABASE_DIR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.database_helper.DATABASE_NAME"><code class="docutils literal notranslate"><span class="pre">DATABASE_NAME</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.database_helper.DATABASE_PATHS"><code class="docutils literal notranslate"><span class="pre">DATABASE_PATHS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.database_helper.MESH_NAME"><code class="docutils literal notranslate"><span class="pre">MESH_NAME</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.database_helper.SIMULATION_BASE"><code class="docutils literal notranslate"><span class="pre">SIMULATION_BASE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.database_helper.get_sim_mesh_path"><code class="docutils literal notranslate"><span class="pre">get_sim_mesh_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.database_helper.get_sim_output_path"><code class="docutils literal notranslate"><span class="pre">get_sim_output_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.database_helper.set_mesh_name"><code class="docutils literal notranslate"><span class="pre">set_mesh_name()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.json_utils">json_utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.json_utils.load_json"><code class="docutils literal notranslate"><span class="pre">load_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.json_utils.save_json"><code class="docutils literal notranslate"><span class="pre">save_json()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.time_utils">time_utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#utils.time_utils.format_time"><code class="docutils literal notranslate"><span class="pre">format_time()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="run_docker_simulations.html">run_docker_simulations module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html#run_docker_simulations.get_settings"><code class="docutils literal notranslate"><span class="pre">get_settings()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html#run_docker_simulations.load_config"><code class="docutils literal notranslate"><span class="pre">load_config()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html#run_docker_simulations.load_json_content"><code class="docutils literal notranslate"><span class="pre">load_json_content()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html#run_docker_simulations.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html#run_docker_simulations.parse_arguments"><code class="docutils literal notranslate"><span class="pre">parse_arguments()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html#run_docker_simulations.post_processing"><code class="docutils literal notranslate"><span class="pre">post_processing()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html#run_docker_simulations.run_simulations"><code class="docutils literal notranslate"><span class="pre">run_simulations()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html#run_docker_simulations.validate_args_vs_json"><code class="docutils literal notranslate"><span class="pre">validate_args_vs_json()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html#run_docker_simulations.validate_files"><code class="docutils literal notranslate"><span class="pre">validate_files()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="start_backend.html">start_backend module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="start_backend.html#start_backend.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="start_backend.html#start_backend.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="server.html">server module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.get_data"><code class="docutils literal notranslate"><span class="pre">get_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.get_default_mesh"><code class="docutils literal notranslate"><span class="pre">get_default_mesh()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.get_electrode_area"><code class="docutils literal notranslate"><span class="pre">get_electrode_area()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.get_mesh"><code class="docutils literal notranslate"><span class="pre">get_mesh()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.get_skin"><code class="docutils literal notranslate"><span class="pre">get_skin()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.get_validation"><code class="docutils literal notranslate"><span class="pre">get_validation()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.reached"><code class="docutils literal notranslate"><span class="pre">reached()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.receive_electrode_positions"><code class="docutils literal notranslate"><span class="pre">receive_electrode_positions()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.receive_interpolated_data"><code class="docutils literal notranslate"><span class="pre">receive_interpolated_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.receive_roi_data"><code class="docutils literal notranslate"><span class="pre">receive_roi_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server.run_simulations"><code class="docutils literal notranslate"><span class="pre">run_simulations()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="remove_post_processing_results.html">remove_post_processing_results module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="remove_post_processing_results.html#remove_post_processing_results.clear_directory"><code class="docutils literal notranslate"><span class="pre">clear_directory()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="remove_post_processing_results.html#remove_post_processing_results.get_all_patient_ids_and_configs"><code class="docutils literal notranslate"><span class="pre">get_all_patient_ids_and_configs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="remove_post_processing_results.html#remove_post_processing_results.get_process_data_directory_path"><code class="docutils literal notranslate"><span class="pre">get_process_data_directory_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="remove_post_processing_results.html#remove_post_processing_results.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="remove_post_processing_results.html#remove_post_processing_results.parse_arguments"><code class="docutils literal notranslate"><span class="pre">parse_arguments()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="remove_post_processing_results.html#remove_post_processing_results.user_clear_directory"><code class="docutils literal notranslate"><span class="pre">user_clear_directory()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Epilepsy Planning Tool - Backend documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Docker_Sim.html" class="btn btn-neutral float-right" title="Docker_Sim package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

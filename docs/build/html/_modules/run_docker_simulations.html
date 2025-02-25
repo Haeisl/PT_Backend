@@ -1,0 +1,518 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>run_docker_simulations &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">run_docker_simulations</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for run_docker_simulations</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Orchestrate the setup and execution of SimNIBS simulations within Docker.</span>
+
+<span class="sd">Notes</span>
+<span class="sd">-----</span>
+<span class="sd">This script:</span>
+<span class="sd">    - Parses command-line arguments for patient/config/ROI info.</span>
+<span class="sd">    - Validates necessary files (electrode positions, ROI data).</span>
+<span class="sd">    - Loads simulation settings from an .ini file.</span>
+<span class="sd">    - Spawns Docker containers to run simulations concurrently for each electrode.</span>
+<span class="sd">    - Performs post-processing steps (mapping simulations to ROI, generating 3D data, validation).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">configparser</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">process_simulations.process_simulation_output</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">collect_validation_results_for_roi</span><span class="p">,</span>
+    <span class="n">convert_to_3d</span><span class="p">,</span>
+    <span class="n">map_simulation_to_roi</span><span class="p">,</span>
+    <span class="n">process_simulation_output</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">process_simulations.validate_simulation_output</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">collect_validation_results</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">DATABASE_PATHS</span><span class="p">,</span> <span class="n">SIMULATION_BASE</span><span class="p">,</span> <span class="n">set_mesh_name</span><span class="p">,</span> <span class="n">DATA_PATH</span>
+
+
+<div class="viewcode-block" id="parse_arguments">
+<a class="viewcode-back" href="../run_docker_simulations.html#run_docker_simulations.parse_arguments">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_arguments</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse command-line arguments for patient, config, and ROI IDs.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    argparse.Namespace</span>
+<span class="sd">        An object containing PatientID, ConfigID, and ROIID (all required),</span>
+<span class="sd">        or exits if any are missing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sentinel</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+    <span class="n">argument_parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Run an ensemble of customized SimNIBS simulations using Docker.&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">argument_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--PatientID&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">sentinel</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ID of the patient (typically set in the frontend)&quot;</span>
+    <span class="p">)</span>
+    <span class="n">argument_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--ConfigID&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">sentinel</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Configuration ID, sometimes also called Ensemble name&quot;</span>
+        <span class="s2">&quot;(typically set in the frontend)&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">argument_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--ROIID&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">sentinel</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Region of interest (ROI) ID (typically set in the frontend)&quot;</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">argument_parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">args_dict</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">required_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PatientID&quot;</span><span class="p">,</span> <span class="s2">&quot;ConfigID&quot;</span><span class="p">,</span> <span class="s2">&quot;ROIID&quot;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">arg_name</span><span class="p">,</span> <span class="n">arg_value</span> <span class="ow">in</span> <span class="n">args_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">arg_value</span> <span class="ow">is</span> <span class="n">sentinel</span> <span class="ow">and</span> <span class="n">arg_name</span> <span class="ow">in</span> <span class="n">required_args</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: received no value for &#39;--</span><span class="si">{</span><span class="n">arg_name</span><span class="si">}</span><span class="s2">&#39;, exiting&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">args</span></div>
+
+
+
+<div class="viewcode-block" id="load_config">
+<a class="viewcode-back" href="../run_docker_simulations.html#run_docker_simulations.load_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_config</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load configuration settings from a local config.ini file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    configparser.ConfigParser</span>
+<span class="sd">        An object with the loaded settings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;config.ini&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config</span></div>
+
+
+
+<div class="viewcode-block" id="get_settings">
+<a class="viewcode-back" href="../run_docker_simulations.html#run_docker_simulations.get_settings">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_settings</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve and set the simulation settings from config.ini and command-line args.</span>
+
+<span class="sd">    This function extracts values such as max_containers, image_name, and mesh_name</span>
+<span class="sd">    from the config. If any are set to &quot;default&quot;, it uses fallback values.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : configparser.ConfigParser</span>
+<span class="sd">        An instance with loaded config.ini data.</span>
+<span class="sd">    args : argparse.Namespace</span>
+<span class="sd">        An object containing command-line arguments.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple (max_containers, image_name, mesh_name).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">max_containers</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;Settings&quot;</span><span class="p">][</span><span class="s2">&quot;max_containers&quot;</span><span class="p">]</span>
+    <span class="n">image_name</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;Settings&quot;</span><span class="p">][</span><span class="s2">&quot;image_name&quot;</span><span class="p">]</span>
+    <span class="n">mesh_name</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;Settings&quot;</span><span class="p">][</span><span class="s2">&quot;mesh_name&quot;</span><span class="p">]</span>
+
+    <span class="n">max_containers</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">max_containers</span> <span class="o">==</span> <span class="s2">&quot;default&quot;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_containers</span><span class="p">)</span>
+    <span class="n">image_name</span> <span class="o">=</span> <span class="s2">&quot;simnibs_simulation:latest&quot;</span> <span class="k">if</span> <span class="n">image_name</span> <span class="o">==</span> <span class="s2">&quot;default&quot;</span> <span class="k">else</span> <span class="n">image_name</span>
+    <span class="n">mesh_name</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">PatientID</span> <span class="k">if</span> <span class="n">mesh_name</span> <span class="o">==</span> <span class="s2">&quot;default&quot;</span> <span class="k">else</span> <span class="n">mesh_name</span>
+
+    <span class="n">set_mesh_name</span><span class="p">(</span><span class="n">mesh_name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">max_containers</span><span class="p">,</span> <span class="n">image_name</span><span class="p">,</span> <span class="n">mesh_name</span></div>
+
+
+
+<div class="viewcode-block" id="validate_files">
+<a class="viewcode-back" href="../run_docker_simulations.html#run_docker_simulations.validate_files">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_files</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate the existence of required files and directories for the simulation.</span>
+
+<span class="sd">    This checks:</span>
+<span class="sd">    - electrode_positions_&lt;ConfigID&gt;.json in electrode directory</span>
+<span class="sd">    - ROI file in the roi directory</span>
+<span class="sd">    - The SIMULATION_BASE code path</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : argparse.Namespace</span>
+<span class="sd">        An object with PatientID, ConfigID, and ROIID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple (config_file_path, roi_file_path, code_path) referring to the</span>
+<span class="sd">        validated file paths and directories.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    SystemExit</span>
+<span class="sd">        Exits with code 1 if any required file/path is missing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config_file_path</span> <span class="o">=</span> <span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;electrode&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">PatientID</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;electrode_positions_</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">ConfigID</span><span class="si">}</span><span class="s2">.json&quot;</span>
+    <span class="n">roi_file_path</span> <span class="o">=</span> <span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;roi&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">PatientID</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">ROIID</span><span class="si">}</span><span class="s2">_roi_bounds.json&quot;</span>
+    <span class="n">code_path</span> <span class="o">=</span> <span class="n">SIMULATION_BASE</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">config_file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: File </span><span class="si">{</span><span class="n">config_file_path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="si">}</span><span class="s2"> does not exist. Check Patient and Config IDs.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">code_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: Unable to find subdirectory </span><span class="si">{</span><span class="n">code_path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">roi_file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: File </span><span class="si">{</span><span class="n">roi_file_path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="si">}</span><span class="s2"> does not exist. Check Patient and Config IDs.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config_file_path</span><span class="p">,</span> <span class="n">roi_file_path</span><span class="p">,</span> <span class="n">code_path</span></div>
+
+
+
+<div class="viewcode-block" id="load_json_content">
+<a class="viewcode-back" href="../run_docker_simulations.html#run_docker_simulations.load_json_content">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_json_content</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="n">roi_file_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load JSON data from the electrode configuration file and ROI file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config_file_path : Path</span>
+<span class="sd">        A Path object to the electrode configuration file.</span>
+<span class="sd">    roi_file_path : Path</span>
+<span class="sd">        A Path object to the ROI file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple (config_json_content, roi_json_content) as Python dictionaries.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    SystemExit</span>
+<span class="sd">        Exits if JSON parsing fails.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">config_file_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">config_json_content</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: Failed to parse JSON content from </span><span class="si">{</span><span class="n">config_file_path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">roi_file_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">roi_json_content</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: Failed to parse JSON content form </span><span class="si">{</span><span class="n">roi_file_path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config_json_content</span><span class="p">,</span> <span class="n">roi_json_content</span></div>
+
+
+
+<div class="viewcode-block" id="validate_args_vs_json">
+<a class="viewcode-back" href="../run_docker_simulations.html#run_docker_simulations.validate_args_vs_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_args_vs_json</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">config_json_content</span><span class="p">,</span> <span class="n">roi_json_content</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compare command-line arguments against values found in JSON files.</span>
+
+<span class="sd">    Issues warnings if mismatch is found between the provided IDs</span>
+<span class="sd">    (PatientID, ConfigID, ROIID) and those loaded from the JSON contents.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : argparse.Namespace</span>
+<span class="sd">        An object with PatientID, ConfigID, and ROIID.</span>
+<span class="sd">    config_json_content : dict</span>
+<span class="sd">        A dict loaded from the electrode config JSON.</span>
+<span class="sd">    roi_json_content : dict</span>
+<span class="sd">        A dict loaded from the ROI JSON.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple (electrodes, config_id_json, patient_id_json, roi_id_json)</span>
+<span class="sd">        extracted from the JSON files.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    SystemExit</span>
+<span class="sd">        Exits if electrodes are not found in the configuration JSON.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">electrodes</span> <span class="o">=</span> <span class="n">config_json_content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Electrodes&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">config_json_content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Metadata&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">config_id_json</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Config_ID&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">patient_id_json</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Patient_ID&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">roi_id_json</span> <span class="o">=</span> <span class="n">roi_json_content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Metadata&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ROI_ID&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">ROIID</span> <span class="o">!=</span> <span class="n">roi_id_json</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: supplied ROI ID </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">ROIID</span><span class="si">}</span><span class="s2"> does not match ROI ID from config file </span><span class="si">{</span><span class="n">roi_id_json</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">PatientID</span> <span class="o">!=</span> <span class="n">patient_id_json</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: supplied Patient ID </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">PatientID</span><span class="si">}</span><span class="s2"> does not match Patient ID from config file </span><span class="si">{</span><span class="n">patient_id_json</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">ConfigID</span> <span class="o">!=</span> <span class="n">config_id_json</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: supplied Config ID (Ensemble name) </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">ConfigID</span><span class="si">}</span><span class="s2"> does not match Config ID from config file </span><span class="si">{</span><span class="n">config_id_json</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">electrodes</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: No electrodes found in the configuration file.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">electrodes</span><span class="p">,</span> <span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">,</span> <span class="n">roi_id_json</span></div>
+
+
+
+<div class="viewcode-block" id="run_simulations">
+<a class="viewcode-back" href="../run_docker_simulations.html#run_docker_simulations.run_simulations">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_simulations</span><span class="p">(</span><span class="n">electrodes</span><span class="p">,</span> <span class="n">max_containers</span><span class="p">,</span> <span class="n">image_name</span><span class="p">,</span> <span class="n">mesh_name</span><span class="p">,</span> <span class="n">code_path</span><span class="p">,</span> <span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run Docker-based simulations for each electrode concurrently up to max_containers limit.</span>
+
+<span class="sd">    For each electrode:</span>
+<span class="sd">    1. Await available container slots if max_containers is reached.</span>
+<span class="sd">    2. Extract the electrode position (X, Y, Z).</span>
+<span class="sd">    3. Spin up a Docker container passing environment variables.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    electrodes : dict</span>
+<span class="sd">        A dict of electrode data from the configuration JSON.</span>
+<span class="sd">    max_containers : int</span>
+<span class="sd">        Maximum number of Docker containers to run concurrently.</span>
+<span class="sd">    image_name : str</span>
+<span class="sd">        Name (and tag) of the Docker image to run.</span>
+<span class="sd">    mesh_name : str</span>
+<span class="sd">        Name of the mesh used for the simulation (e.g., patient ID).</span>
+<span class="sd">    code_path : Path</span>
+<span class="sd">        Path to the local code directory (mounted into the container).</span>
+<span class="sd">    config_id_json : str</span>
+<span class="sd">        A string ID for the current configuration (from JSON).</span>
+<span class="sd">    patient_id_json : str</span>
+<span class="sd">        A string ID for the current patient (from JSON).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    SystemExit</span>
+<span class="sd">        Exits if a container fails to start.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Keep track of running processes</span>
+    <span class="n">running_containers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">electrode</span><span class="p">,</span> <span class="n">position</span> <span class="ow">in</span> <span class="n">electrodes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Wait until the number of running containers is less than max_containers</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">running_containers</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_containers</span><span class="p">:</span>
+            <span class="c1"># Check the status of running containers</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">running_containers</span><span class="p">[:]:</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Check if the process has finished</span>
+                    <span class="n">running_containers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1"># Extract XYZ coordinates for the current electrode</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">position</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">position</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">position</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Start a Docker container for the simulation</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span>
+                <span class="s2">&quot;docker&quot;</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;-v&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">code_path</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2">:/app&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;-v&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">DATA_PATH</span><span class="si">}</span><span class="s2">:/data&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;-e&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ELECTRODE_POSITION_X=</span><span class="si">{</span><span class="n">X</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;-e&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ELECTRODE_POSITION_Y=</span><span class="si">{</span><span class="n">Y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;-e&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ELECTRODE_POSITION_Z=</span><span class="si">{</span><span class="n">Z</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;-e&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ENSEMBLE_NAME=</span><span class="si">{</span><span class="n">config_id_json</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;-e&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ELECTRODE_NAME=</span><span class="si">{</span><span class="n">electrode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;-e&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;MESH_NAME=</span><span class="si">{</span><span class="n">mesh_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">image_name</span>
+            <span class="p">])</span>
+            <span class="n">running_containers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: Failed to start Docker container. </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1"># Wait for all remaining containers to finish</span>
+    <span class="k">for</span> <span class="n">process</span> <span class="ow">in</span> <span class="n">running_containers</span><span class="p">:</span>
+        <span class="n">process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="post_processing">
+<a class="viewcode-back" href="../run_docker_simulations.html#run_docker_simulations.post_processing">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">post_processing</span><span class="p">(</span><span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">,</span> <span class="n">roi_id_json</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform post-processing tasks once all simulations are complete.</span>
+
+<span class="sd">    These tasks include:</span>
+<span class="sd">    - Aggregating simulation outputs (process_simulation_output).</span>
+<span class="sd">    - Mapping results to the ROI (map_simulation_to_roi).</span>
+<span class="sd">    - Converting final data to 3D (convert_to_3d).</span>
+<span class="sd">    - Collecting validation results for this ROI and in general.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config_id_json : str</span>
+<span class="sd">        The configuration ID from JSON metadata.</span>
+<span class="sd">    patient_id_json : str</span>
+<span class="sd">        The patient ID from JSON metadata.</span>
+<span class="sd">    roi_id_json : str</span>
+<span class="sd">        The ROI ID from JSON metadata.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">process_simulation_output</span><span class="p">(</span><span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">)</span>
+    <span class="n">map_simulation_to_roi</span><span class="p">(</span><span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">,</span> <span class="n">roi_id_json</span><span class="p">)</span>
+    <span class="n">convert_to_3d</span><span class="p">(</span><span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">)</span>
+    <span class="n">collect_validation_results_for_roi</span><span class="p">(</span><span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">,</span> <span class="n">roi_id_json</span><span class="p">)</span>
+    <span class="n">collect_validation_results</span><span class="p">(</span><span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../run_docker_simulations.html#run_docker_simulations.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main entry point for configuring and running SimNIBS-based Docker simulations.</span>
+
+<span class="sd">    Steps:</span>
+<span class="sd">    1. Parse CLI arguments (PatientID, ConfigID, ROIID).</span>
+<span class="sd">    2. Load config.ini for container/image settings.</span>
+<span class="sd">    3. Validate existence of required files (electrode config, ROI data).</span>
+<span class="sd">    4. Compare CLI args with JSON metadata, warn if mismatched.</span>
+<span class="sd">    5. Launch Docker containers for each electrode, respecting max concurrency.</span>
+<span class="sd">    6. Run post-processing tasks (mapping to ROI, creating 3D data, validation).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    SystemExit</span>
+<span class="sd">        Exits on critical errors.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_arguments</span><span class="p">()</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">()</span>
+
+    <span class="n">max_containers</span><span class="p">,</span> <span class="n">image_name</span><span class="p">,</span> <span class="n">mesh_name</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">config_file_path</span><span class="p">,</span> <span class="n">roi_file_path</span><span class="p">,</span> <span class="n">code_path</span> <span class="o">=</span> <span class="n">validate_files</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">config_json_content</span><span class="p">,</span> <span class="n">roi_json_content</span> <span class="o">=</span> <span class="n">load_json_content</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="n">roi_file_path</span><span class="p">)</span>
+    <span class="n">electrodes</span><span class="p">,</span> <span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">,</span> <span class="n">roi_id_json</span> <span class="o">=</span> <span class="n">validate_args_vs_json</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">config_json_content</span><span class="p">,</span> <span class="n">roi_json_content</span><span class="p">)</span>
+
+    <span class="n">run_simulations</span><span class="p">(</span><span class="n">electrodes</span><span class="p">,</span> <span class="n">max_containers</span><span class="p">,</span> <span class="n">image_name</span><span class="p">,</span> <span class="n">mesh_name</span><span class="p">,</span> <span class="n">code_path</span><span class="p">,</span> <span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">)</span>
+    <span class="n">post_processing</span><span class="p">(</span><span class="n">config_id_json</span><span class="p">,</span> <span class="n">patient_id_json</span><span class="p">,</span> <span class="n">roi_id_json</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

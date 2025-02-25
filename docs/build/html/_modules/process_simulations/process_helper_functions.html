@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>process_simulations.process_helper_functions &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">process_simulations.process_helper_functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for process_simulations.process_helper_functions</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides helper functions for processing simulation data.</span>
+<span class="sd">It includes functions to create tag-based dictionaries, validate tags,</span>
+<span class="sd">generate lookup tables for tags, and check for numpy ndarrays in data structures.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+<span class="sd">    - is_valid_tag : Check if a tag is valid based on predefined criteria.</span>
+<span class="sd">    - create_tag_based_dictionary : Create a dictionary based on tags and their corresponding data.</span>
+<span class="sd">    - create_tag_look_up_table : Create a lookup table for tags with their descriptions.</span>
+<span class="sd">    - create_tag_look_up_table_default : Create a default lookup table for tags with their descriptions.</span>
+<span class="sd">    - custom_switch : Return the description for a given tag.</span>
+<span class="sd">    - custom_switch_default : Return the default description for a given tag.</span>
+<span class="sd">    - check_for_ndarrays : Recursively check for numpy ndarrays in a data structure.</span>
+
+<span class="sd">Dependencies</span>
+<span class="sd">------------</span>
+<span class="sd">    - numpy : For numerical operations and handling numpy ndarrays.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<div class="viewcode-block" id="is_valid_tag">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_helper_functions.is_valid_tag">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_valid_tag</span><span class="p">(</span><span class="n">str_tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if a tag is valid based on predefined criteria.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    str_tag : str</span>
+<span class="sd">        Tag as a string.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if the tag is valid, False otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">str_tag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;1004&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;100&quot;</span><span class="p">,</span> <span class="s2">&quot;1005&quot;</span><span class="p">,</span> <span class="s2">&quot;7&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">str_tag</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;50&quot;</span><span class="p">,</span> <span class="s2">&quot;150&quot;</span><span class="p">,</span> <span class="s2">&quot;210&quot;</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="create_tag_based_dictionary">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_helper_functions.create_tag_based_dictionary">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_tag_based_dictionary</span><span class="p">(</span><span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">tag_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a dictionary based on tags and their corresponding data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tags : list</span>
+<span class="sd">        List of tags.</span>
+<span class="sd">    tag_data : list</span>
+<span class="sd">        List of data corresponding to the tags.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Dictionary of tags and their data, and list of used tags.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">meshes_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">used_tags</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Building Dictionary... &quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="n">tag_data</span><span class="p">):</span>
+        <span class="n">str_tag</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_valid_tag</span><span class="p">(</span><span class="n">str_tag</span><span class="p">):</span>
+            <span class="c1"># If data is a numpy ndarray, convert it to a list</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">meshes_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">str_tag</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">meshes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">meshes_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">used_tags</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+
+    <span class="n">used_tags</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">used_tags</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">meshes_dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">used_tags</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="create_tag_look_up_table">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_helper_functions.create_tag_look_up_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_tag_look_up_table</span><span class="p">(</span><span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a lookup table for tags with their descriptions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tags : list</span>
+<span class="sd">        List of tags.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        List of descriptions corresponding to the tags.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">descriptions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+        <span class="n">descriptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">custom_switch</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tag</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">descriptions</span></div>
+
+
+
+<div class="viewcode-block" id="create_tag_look_up_table_default">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_helper_functions.create_tag_look_up_table_default">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_tag_look_up_table_default</span><span class="p">(</span><span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a default lookup table for tags with their descriptions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tags : list</span>
+<span class="sd">        List of tags.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        List of default descriptions corresponding to the tags.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">descriptions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+        <span class="n">descriptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">custom_switch_default</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tag</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">descriptions</span></div>
+
+
+
+<div class="viewcode-block" id="custom_switch">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_helper_functions.custom_switch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">custom_switch</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the description for a given tag.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : str</span>
+<span class="sd">        Tag as a string.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Description of the tag.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="s2">&quot;WM&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="s2">&quot;GM&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="s2">&quot;CSF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode Isolation&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="s2">&quot;Compact Bone&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;6&quot;</span><span class="p">:</span> <span class="s2">&quot;Eyeballs&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;7&quot;</span><span class="p">:</span> <span class="s2">&quot;Skin&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;8&quot;</span><span class="p">:</span> <span class="s2">&quot;Spongy Bone&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;9&quot;</span><span class="p">:</span> <span class="s2">&quot;Blood&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;10&quot;</span><span class="p">:</span> <span class="s2">&quot;Muscle&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;501&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 1501&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;502&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 1502&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;503&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 1503&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;504&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 1504&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;505&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 1505&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;100&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode Rubber&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1001&quot;</span><span class="p">:</span> <span class="s2">&quot;WM&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1002&quot;</span><span class="p">:</span> <span class="s2">&quot;GM&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1003&quot;</span><span class="p">:</span> <span class="s2">&quot;CSF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1004&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode Isolation&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1005&quot;</span><span class="p">:</span> <span class="s2">&quot;Compact Bone&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1006&quot;</span><span class="p">:</span> <span class="s2">&quot;Eyeballs&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1008&quot;</span><span class="p">:</span> <span class="s2">&quot;Spongy Bone&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1009&quot;</span><span class="p">:</span> <span class="s2">&quot;Blood&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1010&quot;</span><span class="p">:</span> <span class="s2">&quot;Muscle&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1501&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 1501&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1502&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 1502&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1503&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 1503&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1504&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 1504&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1505&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 1505&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;2101&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 2101&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;2102&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 2102&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;2103&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 2103&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;2104&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 2104&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;2105&quot;</span><span class="p">:</span> <span class="s2">&quot;Electrode 2105&quot;</span><span class="p">,</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2"> NOT FOUND&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="custom_switch_default">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_helper_functions.custom_switch_default">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">custom_switch_default</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the default description for a given tag.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : str</span>
+<span class="sd">        Tag as a string.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Default description of the tag.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;1001&quot;</span><span class="p">:</span> <span class="s2">&quot;WM&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1002&quot;</span><span class="p">:</span> <span class="s2">&quot;GM&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1003&quot;</span><span class="p">:</span> <span class="s2">&quot;CSF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1005&quot;</span><span class="p">:</span> <span class="s2">&quot;Skin&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1006&quot;</span><span class="p">:</span> <span class="s2">&quot;Eyeballs&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1007&quot;</span><span class="p">:</span> <span class="s2">&quot;Compact Bone&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1008&quot;</span><span class="p">:</span> <span class="s2">&quot;Spongy Bone&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1009&quot;</span><span class="p">:</span> <span class="s2">&quot;Blood&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1010&quot;</span><span class="p">:</span> <span class="s2">&quot;Muscle&quot;</span><span class="p">,</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2"> NOT FOUND&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

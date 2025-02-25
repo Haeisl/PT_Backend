@@ -1,0 +1,1083 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docker_Sim package &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="process_simulations package" href="process_simulations.html" />
+    <link rel="prev" title="PlanningTool_Backend" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">PlanningTool_Backend</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Docker_Sim package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Docker_Sim.electrodes">electrodes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.electrodes.electrode_placement"><code class="docutils literal notranslate"><span class="pre">electrode_placement()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.electrodes.small_standard_positions"><code class="docutils literal notranslate"><span class="pre">small_standard_positions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Docker_Sim.functions">functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.compact_bone_back"><code class="docutils literal notranslate"><span class="pre">compact_bone_back()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.compact_bone_to_skin"><code class="docutils literal notranslate"><span class="pre">compact_bone_to_skin()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.create_elec_and_iso"><code class="docutils literal notranslate"><span class="pre">create_elec_and_iso()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.distance"><code class="docutils literal notranslate"><span class="pre">distance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.find_and_fix_nodes_for_change_new"><code class="docutils literal notranslate"><span class="pre">find_and_fix_nodes_for_change_new()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.find_corners"><code class="docutils literal notranslate"><span class="pre">find_corners()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.find_diagonals"><code class="docutils literal notranslate"><span class="pre">find_diagonals()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.join_and_connect"><code class="docutils literal notranslate"><span class="pre">join_and_connect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.mesh_get_outer_surface"><code class="docutils literal notranslate"><span class="pre">mesh_get_outer_surface()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.msh2_to_simnibs"><code class="docutils literal notranslate"><span class="pre">msh2_to_simnibs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.refine"><code class="docutils literal notranslate"><span class="pre">refine()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.remove_disconnected_nodes"><code class="docutils literal notranslate"><span class="pre">remove_disconnected_nodes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.remove_electrodes_volume_from_skin"><code class="docutils literal notranslate"><span class="pre">remove_electrodes_volume_from_skin()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.remove_from_mesh"><code class="docutils literal notranslate"><span class="pre">remove_from_mesh()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.remove_skin"><code class="docutils literal notranslate"><span class="pre">remove_skin()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.retag"><code class="docutils literal notranslate"><span class="pre">retag()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.run_simulation"><code class="docutils literal notranslate"><span class="pre">run_simulation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.volumes_subtraction"><code class="docutils literal notranslate"><span class="pre">volumes_subtraction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.functions.write_info"><code class="docutils literal notranslate"><span class="pre">write_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Docker_Sim.logging_utils">logging_utils</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.logging_utils.CenteredFormatter"><code class="docutils literal notranslate"><span class="pre">CenteredFormatter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.logging_utils.MultilineFormatter"><code class="docutils literal notranslate"><span class="pre">MultilineFormatter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.logging_utils.register_excepthook"><code class="docutils literal notranslate"><span class="pre">register_excepthook()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.logging_utils.unregister_excepthook"><code class="docutils literal notranslate"><span class="pre">unregister_excepthook()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Docker_Sim.param">param</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Docker_Sim.sim_controller">sim_controller</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.sim_controller.create_sim_info_file"><code class="docutils literal notranslate"><span class="pre">create_sim_info_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.sim_controller.log_warning"><code class="docutils literal notranslate"><span class="pre">log_warning()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.sim_controller.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.sim_controller.print_environment_info"><code class="docutils literal notranslate"><span class="pre">print_environment_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Docker_Sim.simulation">simulation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.simulation.run_simulation"><code class="docutils literal notranslate"><span class="pre">run_simulation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.simulation.simulate"><code class="docutils literal notranslate"><span class="pre">simulate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Docker_Sim.svg_to_nodes">svg_to_nodes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.svg_to_nodes.get_point_at"><code class="docutils literal notranslate"><span class="pre">get_point_at()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.svg_to_nodes.multiply_transforms"><code class="docutils literal notranslate"><span class="pre">multiply_transforms()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.svg_to_nodes.points_from_doc"><code class="docutils literal notranslate"><span class="pre">points_from_doc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.svg_to_nodes.points_from_path"><code class="docutils literal notranslate"><span class="pre">points_from_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.svg_to_nodes.rescale_linear"><code class="docutils literal notranslate"><span class="pre">rescale_linear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.svg_to_nodes.rotate"><code class="docutils literal notranslate"><span class="pre">rotate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Docker_Sim.svg_to_nodes.svg_to_nodes"><code class="docutils literal notranslate"><span class="pre">svg_to_nodes()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-Docker_Sim">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="process_simulations.html">process_simulations package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html">run_docker_simulations module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="start_backend.html">start_backend module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html">server module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="remove_post_processing_results.html">remove_post_processing_results module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">PlanningTool_Backend</a></li>
+      <li class="breadcrumb-item active">Docker_Sim package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Docker_Sim.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="docker-sim-package">
+<h1>Docker_Sim package<a class="headerlink" href="#docker-sim-package" title="Link to this heading"></a></h1>
+<p>This package handles the customized SimNIBS simulations in Docker containers.</p>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<p>Below is a list of modules contained in this package.</p>
+</section>
+<section id="module-Docker_Sim.electrodes">
+<span id="electrodes"></span><h2>electrodes<a class="headerlink" href="#module-Docker_Sim.electrodes" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.electrodes.electrode_placement">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.electrodes.</span></span><span class="sig-name descname"><span class="pre">electrode_placement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathfem_modif</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peripheral_coord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">SESSION</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Msh</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/Docker_Sim/electrodes.html#electrode_placement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.electrodes.electrode_placement" title="Link to this definition"></a></dt>
+<dd><p>Set up electrode placement and generate a simulation session for tDCS in SimNIBS.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ul class="simple">
+<li><p>Creates a SimNIBS session (<cite>sim_struct.SESSION</cite>), assigns fields and currents.</p></li>
+<li><p>Defines electrode properties (dimensions, thickness, etc.) and places them on the mesh.</p></li>
+<li><p>Optionally uses peripheral coordinates if provided, otherwise calculates electrode center positions using <cite>small_standard_positions</cite>.</p></li>
+<li><p>Adds an isolation shape from an SVG file for the silicone pad.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> (<em>Msh</em>) – A mesh object representing the head model.</p></li>
+<li><p><strong>pathfem_modif</strong> (<em>str</em>) – A file path or identifier for the FEM mesh output.</p></li>
+<li><p><strong>peripheral_coord</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of additional electrode center coordinates for peripheral electrodes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>SimNIBS SESSION object (<cite>S</cite>).</p></li>
+<li><p>Modified Msh object (<cite>mesh_elec</cite>) with electrodes placed.</p></li>
+<li><p>List of surfaces (<cite>elec_surfaces</cite>) corresponding to electrodes.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.electrodes.small_standard_positions">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.electrodes.</span></span><span class="sig-name descname"><span class="pre">small_standard_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/electrodes.html#small_standard_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.electrodes.small_standard_positions" title="Link to this definition"></a></dt>
+<dd><p>Determine orientation vectors (xdir, ydir, zdir) for silicone pad placement on the skull surface.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ul class="simple">
+<li><p>Finds the closest node on the skull mesh to a predefined <cite>param.pos_centre</cite>.</p></li>
+<li><p>Retrieves the surface normal at that point to define the z-direction.</p></li>
+<li><p>Computes xdir by taking the cross product of zdir and a user-defined orientation vector (ydir).</p></li>
+<li><p>Rotates ydir around zdir based on an angle <cite>param.theta</cite> using Rodrigues’ rotation formula.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mesh</strong> (<em>Msh</em>) – Mesh object from which to extract the skull region (ID 1005).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple (xdir_centre, ydir_centre, zdir_centre) representing the orientation vectors for the silicone pad.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Docker_Sim.functions">
+<span id="functions"></span><h2>functions<a class="headerlink" href="#module-Docker_Sim.functions" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.compact_bone_back">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">compact_bone_back</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#compact_bone_back"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.compact_bone_back" title="Link to this definition"></a></dt>
+<dd><p>Reassign skin tags back to compact bone.</p>
+<p>This reverses the assignments done in compact_bone_to_skin by replacing
+skin tags (1005, 5) with bone tags (1007, 7).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mesh</strong> (<em>Msh</em>) – The Msh object to modify.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Modifies mesh in place.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.compact_bone_to_skin">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">compact_bone_to_skin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#compact_bone_to_skin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.compact_bone_to_skin" title="Link to this definition"></a></dt>
+<dd><p>Reassign compact bone tags to skin tags.</p>
+<p>This function calls retag to replace the compact bone tags (1007, 7)
+with the skin tags (1005, 5).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mesh</strong> (<em>Msh</em>) – The Msh object to modify.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Modifies mesh in place.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.create_elec_and_iso">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">create_elec_and_iso</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#create_elec_and_iso"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.create_elec_and_iso" title="Link to this definition"></a></dt>
+<dd><p>Create electrodes and isolation geometry, refine the skull mesh, and perform volume subtractions.</p>
+<dl class="simple">
+<dt>This function performs a multi-step mesh manipulation pipeline to:</dt><dd><ol class="arabic simple">
+<li><p>Create a new output directory for the simulation.</p></li>
+<li><p>Locate and read the original head mesh.</p></li>
+<li><p>Separate the mesh into skin, skull, and the remaining tissues, applying tag changes if needed.</p></li>
+<li><p>Optionally refine the skull mesh if a refined version doesn’t already exist.</p></li>
+<li><p>Calculate electrode positions using ‘find_corners()’, then place the electrodes with ‘electrode_placement()’.</p></li>
+<li><p>Compute normals for electrodes and extrude both the electrode surfaces and isolation surfaces in Gmsh.</p></li>
+<li><p>Subtract volumes to remove isolation from the skin and electrodes from the isolation, and re-create volumes in Gmsh.</p></li>
+<li><p>Fix node positions to ensure consistent geometry between adjacent surfaces.</p></li>
+<li><p>Cleanup (delete) intermediate or unnecessary files.</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A pathlib.Path object corresponding to the newly created output directory
+that contains the final meshes.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pathlib.Path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.distance">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.distance" title="Link to this definition"></a></dt>
+<dd><p>Calculate the Euclidean distance between two 3D points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point1</strong> (<em>tuple</em><em> or </em><em>list</em>) – A tuple/list with (x, y, z) coordinates.</p></li>
+<li><p><strong>point2</strong> (<em>tuple</em><em> or </em><em>list</em>) – A tuple/list with (x, y, z) coordinates.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Euclidean distance between the two points.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.find_and_fix_nodes_for_change_new">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">find_and_fix_nodes_for_change_new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh_skin_with_holes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrodes_ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#find_and_fix_nodes_for_change_new"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.find_and_fix_nodes_for_change_new" title="Link to this definition"></a></dt>
+<dd><p>Align skin mesh nodes to match electrode coordinates within a tolerance.</p>
+<p>This function:</p>
+<ul class="simple">
+<li><p>Creates a KDTree from the electrode node coordinates.</p></li>
+<li><p>Finds skin mesh nodes within a certain tolerance to those electrode coordinates.</p></li>
+<li><p>Replaces those skin node coordinates with the electrode coordinates, ensuring
+alignment between skin and electrode meshes.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh_skin_with_holes</strong> (<em>Msh</em>) – A Msh object for the skin mesh (with holes).</p></li>
+<li><p><strong>electrodes_ref</strong> (<em>Msh</em>) – A Msh object whose node coordinates are used as the reference.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The modified skin mesh with nodes aligned to electrode coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Msh</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.find_corners">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">find_corners</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#find_corners"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.find_corners" title="Link to this definition"></a></dt>
+<dd><p>Locate corners (diagonal endpoints) of an electrode placed on a mesh.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ul class="simple">
+<li><p>Sets up a temporary SimNIBS session and places a rectangular electrode on the given mesh.</p></li>
+<li><p>Extracts the electrode surface nodes, then identifies diagonal points via ‘find_diagonals’.</p></li>
+<li><p>Returns the diagonal corners and a modified mesh with the electrodes removed.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mesh</strong> (<em>Msh</em>) – A Msh object representing the main head mesh.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing:
+- The list of diagonals (pairs of far-apart points) from the electrode surface.
+- The mesh after removing the electrode volumes (tags [501, 502, 1501, 1502, 2101, 2102]).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.find_diagonals">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">find_diagonals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes_coord</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#find_diagonals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.find_diagonals" title="Link to this definition"></a></dt>
+<dd><p>Find two diagonal segments based on convex hull points.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ul class="simple">
+<li><p>Computes the convex hull of the given node coordinates.</p></li>
+<li><p>Finds two pairs of points that are the farthest apart.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>nodes_coord</strong> (<em>numpy.ndarray</em>) – A NumPy array of shape (N, 3) representing node coordinates in 3D space.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of two pairs of points (each pair is a list of two 3D coordinates),
+representing the longest diagonals found among the hull points.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.join_and_connect">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">join_and_connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh2</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Msh</span></span></span><a class="reference internal" href="_modules/Docker_Sim/functions.html#join_and_connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.join_and_connect" title="Link to this definition"></a></dt>
+<dd><p>Join two meshes and merge shared nodes.</p>
+<p>This function searches for coincident nodes between mesh1 and mesh2 using
+a KD-Tree. Shared nodes are merged, while non-shared nodes are appended
+to the first mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh1</strong> (<em>Msh</em>) – The primary Msh object to which the second is joined.</p></li>
+<li><p><strong>mesh2</strong> (<em>Msh</em>) – The secondary Msh object to be joined.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new Msh object containing both meshes, with shared nodes merged.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Msh</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.mesh_get_outer_surface">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">mesh_get_outer_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntag</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Msh</span></span></span><a class="reference internal" href="_modules/Docker_Sim/functions.html#mesh_get_outer_surface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.mesh_get_outer_surface" title="Link to this definition"></a></dt>
+<dd><p>Extract the outer surface from a mesh as a new Msh.</p>
+<p>This function identifies all outside faces (triangles on the outer surface)
+and creates a new Msh object containing only those faces, assigning them a
+specified tag (ntag).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> (<em>Msh</em>) – The original mesh.</p></li>
+<li><p><strong>ntag</strong> (<em>int</em>) – The tag to assign to the new surface elements.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new Msh object containing only the outer surface triangles.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Msh</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.msh2_to_simnibs">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">msh2_to_simnibs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#msh2_to_simnibs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.msh2_to_simnibs" title="Link to this definition"></a></dt>
+<dd><p>Convert a .msh file to a SimNIBS-compatible format (removes carriage returns).</p>
+<p>This function reads an existing .msh file in binary mode, strips carriage returns,
+writes out a new file named ‘[original]_simnibs.msh’, and then reads it via
+mesh_tools.read_msh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The path to the original .msh file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Msh object read from the newly created ‘_simnibs.msh’ file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Msh</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.refine">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">refine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refined_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#refine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.refine" title="Link to this definition"></a></dt>
+<dd><p>Refine the mesh using gmsh and return the refined mesh.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ul class="simple">
+<li><p>Writes the original mesh to ‘mesh_before_refining.msh’.</p></li>
+<li><p>Uses gmsh to refine the mesh.</p></li>
+<li><p>Cleans up carriage returns in the intermediate file.</p></li>
+<li><p>Saves the final refined mesh under ‘refined_name’.</p></li>
+<li><p>Removes intermediate .msh files except for the one containing ‘skull’ in its name.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> (<em>Msh</em>) – The mesh to refine.</p></li>
+<li><p><strong>path</strong> (<em>pathlib.Path</em>) – A pathlib.Path where intermediate and final files will be stored.</p></li>
+<li><p><strong>refined_name</strong> (<em>str</em>) – A string name for the final refined mesh file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The refined Msh object read from the final file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Msh</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.remove_disconnected_nodes">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">remove_disconnected_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#remove_disconnected_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.remove_disconnected_nodes" title="Link to this definition"></a></dt>
+<dd><p>Remove any nodes that are not connected to any elements in a mesh.</p>
+<p>This function:</p>
+<ul class="simple">
+<li><p>Identifies nodes with zero adjacency.</p></li>
+<li><p>Deletes them from the mesh and updates the element node numbering accordingly.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mesh</strong> (<em>Msh</em>) – A Msh object to be processed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The updated Msh object with disconnected nodes removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Msh</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.remove_electrodes_volume_from_skin">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">remove_electrodes_volume_from_skin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">electrodes_volume_mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skin_surf_vol_mesh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#remove_electrodes_volume_from_skin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.remove_electrodes_volume_from_skin" title="Link to this definition"></a></dt>
+<dd><p>Remove the volume occupied by electrodes from the skin volume mesh.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ul class="simple">
+<li><p>Finds tetrahedra in the skin mesh that contain electrode nodes.</p></li>
+<li><p>Deletes those tetrahedra to leave a “hole” where the electrodes are.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>electrodes_volume_mesh</strong> (<em>Msh</em>) – A Msh object representing the electrode volumes.</p></li>
+<li><p><strong>skin_surf_vol_mesh</strong> (<em>Msh</em>) – A Msh object representing the skin volume + surface.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new Msh object for the skin mesh with the electrode volumes removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Msh</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.remove_from_mesh">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">remove_from_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#remove_from_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.remove_from_mesh" title="Link to this definition"></a></dt>
+<dd><p>Remove volume(s) with the specified tag(s) from a mesh.</p>
+<p>This function calls mesh.remove_from_mesh(tag) internally and verifies
+that no elements with the old tag remain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> (<em>Msh</em>) – The Msh object from which to remove elements.</p></li>
+<li><p><strong>tag</strong> (<em>int</em><em> or </em><em>list</em><em> of </em><em>int</em>) – An integer or list of integers representing the volume tags to be removed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The updated Msh object with the specified volume(s) removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Msh</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.remove_skin">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">remove_skin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#remove_skin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.remove_skin" title="Link to this definition"></a></dt>
+<dd><p>Remove skin volume and surface from the mesh.</p>
+<p>Internally calls remove_from_mesh with tags [5, 1005], which typically correspond
+to skin volumes/surfaces in this setup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mesh</strong> (<em>Msh</em>) – The Msh object from which to remove skin.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The updated Msh object with skin removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Msh</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.retag">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">retag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">otag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#retag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.retag" title="Link to this definition"></a></dt>
+<dd><p>Change element tags from old tag (otag) to new tag (ntag).</p>
+<p>This function modifies mesh.elm.tag1 and mesh.elm.tag2 in-place to switch
+elements from otag to ntag, then checks consistency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> (<em>Msh</em>) – The Msh object whose elements will be retagged.</p></li>
+<li><p><strong>otag</strong> (<em>int</em>) – The old tag to be replaced.</p></li>
+<li><p><strong>ntag</strong> (<em>int</em>) – The new tag that replaces the old tag.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Modifies mesh in place.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.run_simulation">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">S</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrode_surfaces</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.run_simulation" title="Link to this definition"></a></dt>
+<dd><p>Run a tDCS simulation using a custom Neumann-based solver.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ul class="simple">
+<li><p>Adjusts electrode conductivities in the session (S).</p></li>
+<li><p>Prepares the mesh for simulation.</p></li>
+<li><p>Calls a custom Neumann solver (‘custom_tdcs_neumann’) to calculate potential.</p></li>
+<li><p>Calculates resulting fields and writes outputs to disk.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>S</strong> (<em>SimNIBS SESSION</em>) – A SimNIBS SESSION object with all electrode/mesh data set up.</p></li>
+<li><p><strong>electrode_surfaces</strong> (<em>list</em>) – A list of surfaces used for the electrodes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Results are written to files and appended to the session object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.volumes_subtraction">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">volumes_subtraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol1_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol2_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#volumes_subtraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.volumes_subtraction" title="Link to this definition"></a></dt>
+<dd><p>Subtract one volumetric mesh from another, fix common geometry issues, and save the result.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ul class="simple">
+<li><p>Loads two volumetric meshes from the paths given by ‘vol1_name’ and ‘vol2_name’.</p></li>
+<li><p>Performs a difference operation (A minus B) using mrmeshpy’s Boolean tools.</p></li>
+<li><p>Searches for (and logs) degenerate faces and self-intersections in the resulting mesh.</p></li>
+<li><p>Attempts to fix self-intersections if any are found.</p></li>
+<li><p>Saves the final mesh to ‘output_name’.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vol1_name</strong> (<em>str</em>) – Path to the first volume/mesh (A).</p></li>
+<li><p><strong>vol2_name</strong> (<em>str</em>) – Path to the second volume/mesh (B) to subtract from the first.</p></li>
+<li><p><strong>output_name</strong> (<em>str</em>) – Path where the resulting mesh after subtraction is saved.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The function writes the result to a file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.functions.write_info">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.functions.</span></span><span class="sig-name descname"><span class="pre">write_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pathfem_modif</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/functions.html#write_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.functions.write_info" title="Link to this definition"></a></dt>
+<dd><p>Write simulation and positioning parameters to a .infofile.</p>
+<p>This function uses a global ‘param’ object (not shown in this snippet)
+to retrieve various simulation parameters and writes them to
+‘param.infofile’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pathfem_modif</strong> (<em>pathlib.Path</em>) – A path object where param.infofile is stored.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Outputs text to a file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Docker_Sim.logging_utils">
+<span id="logging-utils"></span><h2>logging_utils<a class="headerlink" href="#module-Docker_Sim.logging_utils" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="Docker_Sim.logging_utils.CenteredFormatter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Docker_Sim.logging_utils.</span></span><span class="sig-name descname"><span class="pre">CenteredFormatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datefmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/logging_utils.html#CenteredFormatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.logging_utils.CenteredFormatter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Docker_Sim.logging_utils.MultilineFormatter" title="Docker_Sim.logging_utils.MultilineFormatter"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultilineFormatter</span></code></a></p>
+<p>A custom logging formatter that center-aligns the logger name and level.</p>
+<p>This formatter inherits from MultilineFormatter, adding center alignment
+to the <cite>name</cite> and <cite>levelname</cite> fields in each log record.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Docker_Sim.logging_utils.CenteredFormatter.format">
+<span class="sig-name descname"><span class="pre">format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/logging_utils.html#CenteredFormatter.format"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.logging_utils.CenteredFormatter.format" title="Link to this definition"></a></dt>
+<dd><p>Format the log record to center-align the logger name and level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>record</strong> (<em>logging.LogRecord</em>) – The LogRecord to be processed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A string with the final, formatted message (possibly multiline).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Docker_Sim.logging_utils.MultilineFormatter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Docker_Sim.logging_utils.</span></span><span class="sig-name descname"><span class="pre">MultilineFormatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datefmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/logging_utils.html#MultilineFormatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.logging_utils.MultilineFormatter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Formatter</span></code></p>
+<p>A custom logging formatter that handles multiline log messages.</p>
+<p>This formatter splits messages by their newline characters and prefixes
+each line with a visual tree-like structure (─, ┬, ├, └). This allows for
+better readability of complex or multiline log messages.</p>
+<section id="usage-example">
+<h3>Usage example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h3>
+<p>logger = logging.getLogger(“my_logger”)
+handler = logging.StreamHandler()
+handler.setFormatter(MultilineFormatter())
+logger.addHandler(handler)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Docker_Sim.logging_utils.MultilineFormatter.format">
+<span class="sig-name descname"><span class="pre">format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LogRecord</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/logging_utils.html#MultilineFormatter.format"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.logging_utils.MultilineFormatter.format" title="Link to this definition"></a></dt>
+<dd><p>Format a logging record, inserting visual delimiters for multiline messages.</p>
+<p>This overrides the default <cite>format</cite> method to introduce tree-like
+decorations for messages split across multiple lines. Each line is
+formatted separately, and the record’s attributes (e.g., name, levelname)
+are manipulated to maintain alignment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>record</strong> (<em>logging.LogRecord</em>) – The LogRecord to be processed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A string containing the formatted log message(s).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.logging_utils.register_excepthook">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.logging_utils.</span></span><span class="sig-name descname"><span class="pre">register_excepthook</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/logging_utils.html#register_excepthook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.logging_utils.register_excepthook" title="Link to this definition"></a></dt>
+<dd><p>Register a global exception hook that logs unhandled exceptions.</p>
+<p>This function redirects the default sys.excepthook to a custom hook that
+logs unhandled exceptions at the DEBUG and CRITICAL levels. It also
+passes KeyboardInterrupt to the original excepthook, preserving the
+default behavior for Ctrl+C interrupts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>logger</strong> (<em>logging.Logger</em>) – A logging.Logger instance to which uncaught exceptions will be logged.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.logging_utils.unregister_excepthook">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.logging_utils.</span></span><span class="sig-name descname"><span class="pre">unregister_excepthook</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/logging_utils.html#unregister_excepthook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.logging_utils.unregister_excepthook" title="Link to this definition"></a></dt>
+<dd><p>Unregister the custom exception hook, restoring the default Python behavior.</p>
+<p>This function resets sys.excepthook back to sys.__excepthook__, effectively
+removing any custom logging hooks that were registered via register_excepthook.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Docker_Sim.param">
+<span id="param"></span><h2>param<a class="headerlink" href="#module-Docker_Sim.param" title="Link to this heading"></a></h2>
+</section>
+<section id="module-Docker_Sim.sim_controller">
+<span id="sim-controller"></span><h2>sim_controller<a class="headerlink" href="#module-Docker_Sim.sim_controller" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.sim_controller.create_sim_info_file">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.sim_controller.</span></span><span class="sig-name descname"><span class="pre">create_sim_info_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">running</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/Docker_Sim/sim_controller.html#create_sim_info_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.sim_controller.create_sim_info_file" title="Link to this definition"></a></dt>
+<dd><p>Create or update a JSON file with simulation status information.</p>
+<p>This function uses environment variables (VOLUME_PATH, ENSEMBLE_NAME, ELECTRODE_NAME,
+ELECTRODE_POSITION_X/Y/Z) to construct a JSON file named ‘sim_info_&lt;electrode&gt;.json’.
+It updates the file with details about the simulation status (running/success).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>running</strong> (<em>bool</em>) – A boolean indicating whether the simulation is currently running.</p></li>
+<li><p><strong>success</strong> (<em>bool</em>) – A boolean indicating whether the simulation has completed successfully.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The JSON file is written to disk.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.sim_controller.log_warning">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.sim_controller.</span></span><span class="sig-name descname"><span class="pre">log_warning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lineno</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/sim_controller.html#log_warning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.sim_controller.log_warning" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.sim_controller.main">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.sim_controller.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/sim_controller.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.sim_controller.main" title="Link to this definition"></a></dt>
+<dd><p>Main entry point for the simulation script.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ul class="simple">
+<li><p>Registers a custom excepthook for global exception handling.</p></li>
+<li><p>Logs an initial simulation info file indicating the simulation is running.</p></li>
+<li><p>Prints environment information.</p></li>
+<li><p>Calls the simulation logic (simulation.simulate()).</p></li>
+<li><p>Updates the simulation info file upon completion.</p></li>
+<li><p>Unregisters the custom excepthook.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.sim_controller.print_environment_info">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.sim_controller.</span></span><span class="sig-name descname"><span class="pre">print_environment_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/Docker_Sim/sim_controller.html#print_environment_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.sim_controller.print_environment_info" title="Link to this definition"></a></dt>
+<dd><p>Print environment information such as Conda environment and Python version.</p>
+<p>This function retrieves the current Conda environment (if any) from the
+environment variable CONDA_DEFAULT_ENV and the Python version from sys.version,
+then logs the information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Docker_Sim.simulation">
+<span id="simulation"></span><h2>simulation<a class="headerlink" href="#module-Docker_Sim.simulation" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.simulation.run_simulation">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.simulation.</span></span><span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pathfem_modif</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/simulation.html#run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.simulation.run_simulation" title="Link to this definition"></a></dt>
+<dd><p>Assemble the head model from multiple mesh files, place electrodes, and run a tDCS simulation.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ol class="arabic simple">
+<li><p>Loads partial meshes (skin, skull, isolation, electrodes) from files in <cite>pathfem_modif</cite>.</p></li>
+<li><p>Joins and connects them into a single Msh object.</p></li>
+<li><p>Retags certain parts to match simulation requirements for SimNIBS.</p></li>
+<li><p>Creates a SimNIBS SESSION object, sets up electrodes, and calls the solver.</p></li>
+<li><p>Cleans up intermediate files, leaving only key outputs.</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pathfem_modif</strong> (<em>pathlib.Path</em>) – A path object indicating where the mesh files and output should be read/written.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The function writes simulation outputs to files in <cite>pathfem_modif</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.simulation.simulate">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.simulation.</span></span><span class="sig-name descname"><span class="pre">simulate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/simulation.html#simulate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.simulation.simulate" title="Link to this definition"></a></dt>
+<dd><p>Top-level function to create electrodes, isolation, and run a tDCS simulation.</p>
+<dl class="simple">
+<dt>This function:</dt><dd><ol class="arabic simple">
+<li><p>Calls create_elec_and_iso() from the <cite>functions</cite> module to prepare meshes and isolation geometry, returning the path to the modified directory.</p></li>
+<li><p>Calls run_simulation() to assemble the final mesh, place electrodes, and run the tDCS simulation.</p></li>
+<li><p>Writes an info file summarizing the simulation parameters via write_info().</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Results are written to files in the path returned by create_elec_and_iso().</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Docker_Sim.svg_to_nodes">
+<span id="svg-to-nodes"></span><h2>svg_to_nodes<a class="headerlink" href="#module-Docker_Sim.svg_to_nodes" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.svg_to_nodes.get_point_at">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.svg_to_nodes.</span></span><span class="sig-name descname"><span class="pre">get_point_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/svg_to_nodes.html#get_point_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.svg_to_nodes.get_point_at" title="Link to this definition"></a></dt>
+<dd><p>Retrieve a point on an SVG path at a given normalized distance, applying scale and offset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>svg.path.Path</em>) – A parsed SVG path object (from svg.path).</p></li>
+<li><p><strong>distance</strong> (<em>float</em>) – A float in [0,1] indicating the fractional distance along the path.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – A float that scales the resulting x and y coordinates.</p></li>
+<li><p><strong>offset</strong> (<em>complex</em><em> or </em><em>tuple</em>) – A complex number (or tuple converted to complex) to translate the point.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple (x, y) for the point at the specified location on the path.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.svg_to_nodes.multiply_transforms">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.svg_to_nodes.</span></span><span class="sig-name descname"><span class="pre">multiply_transforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/svg_to_nodes.html#multiply_transforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.svg_to_nodes.multiply_transforms" title="Link to this definition"></a></dt>
+<dd><p>Multiply two 2D transformation matrices in the format used by certain SVG attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>list</em><em> or </em><em>array</em>) – The first transformation (6-element list or array).</p></li>
+<li><p><strong>b</strong> (<em>list</em><em> or </em><em>array</em>) – The second transformation (6-element list or array).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of 6 floats representing the combined transform a*b.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.svg_to_nodes.points_from_doc">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.svg_to_nodes.</span></span><span class="sig-name descname"><span class="pre">points_from_doc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/svg_to_nodes.html#points_from_doc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.svg_to_nodes.points_from_doc" title="Link to this definition"></a></dt>
+<dd><p>Extract points from all &lt;path&gt; elements in an SVG DOM document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>doc</strong> (<em>xml.dom.minidom.Document</em>) – A minidom parsed SVG document object.</p></li>
+<li><p><strong>density</strong> (<em>float</em><em>, </em><em>optional</em>) – A float controlling sampling density along each path.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – A float scale factor applied to each point.</p></li>
+<li><p><strong>offset</strong> (<em>tuple</em><em>, </em><em>optional</em>) – A tuple (offset_x, offset_y) used for translation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of (x, y) floats representing sampled points from all paths.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.svg_to_nodes.points_from_path">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.svg_to_nodes.</span></span><span class="sig-name descname"><span class="pre">points_from_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/svg_to_nodes.html#points_from_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.svg_to_nodes.points_from_path" title="Link to this definition"></a></dt>
+<dd><p>Generate points along an SVG path with a given density, scale, and offset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>svg.path.Path</em>) – A parsed SVG path object.</p></li>
+<li><p><strong>density</strong> (<em>float</em>) – A float controlling how many samples to take per unit length of the path.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – A float factor to scale each (x, y) coordinate.</p></li>
+<li><p><strong>offset</strong> (<em>complex</em><em> or </em><em>tuple</em>) – A complex number or tuple that offsets each point.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A generator yielding (x, y) coordinate pairs sampled from the path.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>generator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.svg_to_nodes.rescale_linear">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.svg_to_nodes.</span></span><span class="sig-name descname"><span class="pre">rescale_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_max</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/svg_to_nodes.html#rescale_linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.svg_to_nodes.rescale_linear" title="Link to this definition"></a></dt>
+<dd><p>Rescale a 2D NumPy array to a new range [new_min, new_max] along each dimension.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> (<em>numpy.ndarray</em>) – A NumPy array of shape (N, 2), where the first column is x-coordinates
+and the second column is y-coordinates.</p></li>
+<li><p><strong>new_min</strong> (<em>float</em>) – The new minimum value after rescaling.</p></li>
+<li><p><strong>new_max</strong> (<em>float</em>) – The new maximum value after rescaling.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The modified array, also returned for convenience.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.svg_to_nodes.rotate">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.svg_to_nodes.</span></span><span class="sig-name descname"><span class="pre">rotate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Docker_Sim/svg_to_nodes.html#rotate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.svg_to_nodes.rotate" title="Link to this definition"></a></dt>
+<dd><p>Rotate a set of 2D points around a given origin by a specified angle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origin</strong> (<em>tuple</em><em> or </em><em>list</em>) – A tuple or list of length 2 (ox, oy), the rotation center.</p></li>
+<li><p><strong>points</strong> (<em>iterable</em>) – An iterable of (x, y) coordinates to rotate.</p></li>
+<li><p><strong>angle</strong> (<em>float</em>) – Rotation angle in radians.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A NumPy array of rotated points with shape (N, 2).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Docker_Sim.svg_to_nodes.svg_to_nodes">
+<span class="sig-prename descclassname"><span class="pre">Docker_Sim.svg_to_nodes.</span></span><span class="sig-name descname"><span class="pre">svg_to_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">svg_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/Docker_Sim/svg_to_nodes.html#svg_to_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Docker_Sim.svg_to_nodes.svg_to_nodes" title="Link to this definition"></a></dt>
+<dd><p>Convert an SVG file (containing one or more paths) into a NumPy array of 2D points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>svg_file</strong> (<em>str</em>) – Path to an SVG file that defines shape outlines via &lt;path&gt; elements.</p></li>
+<li><p><strong>rotation_angle</strong> (<em>float</em><em>, </em><em>optional</em>) – The angle (in degrees) by which to rotate the resulting points about (0,0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A NumPy array of shape (N, 2), containing the processed (x, y) points.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Docker_Sim">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Docker_Sim" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="PlanningTool_Backend" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="process_simulations.html" class="btn btn-neutral float-right" title="process_simulations package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

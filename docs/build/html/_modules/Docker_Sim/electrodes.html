@@ -1,0 +1,273 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docker_Sim.electrodes &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">Docker_Sim.electrodes</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for Docker_Sim.electrodes</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">cos</span><span class="p">,</span> <span class="n">radians</span><span class="p">,</span> <span class="n">sin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">cast</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">param</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simnibs</span><span class="w"> </span><span class="kn">import</span> <span class="n">sim_struct</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simnibs.mesh_tools.mesh_io</span><span class="w"> </span><span class="kn">import</span> <span class="n">Msh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">svg_to_nodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">svg_to_nodes</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;planningtool&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="small_standard_positions">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.electrodes.small_standard_positions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">small_standard_positions</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine orientation vectors (xdir, ydir, zdir) for silicone pad placement on the skull surface.</span>
+
+<span class="sd">    This function:</span>
+<span class="sd">        - Finds the closest node on the skull mesh to a predefined `param.pos_centre`.</span>
+<span class="sd">        - Retrieves the surface normal at that point to define the z-direction.</span>
+<span class="sd">        - Computes xdir by taking the cross product of zdir and a user-defined orientation vector (ydir).</span>
+<span class="sd">        - Rotates ydir around zdir based on an angle `param.theta` using Rodrigues&#39; rotation formula.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        Mesh object from which to extract the skull region (ID 1005).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple of ndarray</span>
+<span class="sd">        A tuple (xdir_centre, ydir_centre, zdir_centre) representing the orientation vectors for the silicone pad.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># determine xdir, ydir and zdir for silicone pad and calculate electrode positions</span>
+    <span class="c1"># xdir, ydir and zdir are LEFT HANDED, contrary to mesh coordinates</span>
+
+    <span class="n">pos_centre</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">pos_centre</span><span class="p">)</span>
+    <span class="n">ydir_centre</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">orientation</span><span class="p">)</span>
+
+    <span class="c1"># get closest point on skull and local normals for planning electrode placement</span>
+    <span class="c1"># skull was retagged to skin</span>
+    <span class="n">mesh_skull</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">(</span><span class="mi">1005</span><span class="p">)</span>
+    <span class="p">[</span><span class="n">pos_centre_surface</span><span class="p">,</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh_skull</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">find_closest_node</span><span class="p">(</span>
+        <span class="n">pos_centre</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">ptnormals</span> <span class="o">=</span> <span class="n">mesh_skull</span><span class="o">.</span><span class="n">nodes_normals</span><span class="p">()</span>
+    <span class="n">zdir_centre</span> <span class="o">=</span> <span class="n">ptnormals</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="n">xdir_centre</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span>
+        <span class="n">zdir_centre</span><span class="p">,</span> <span class="n">ydir_centre</span>
+    <span class="p">)</span>  <span class="c1"># cross product to assert linear dependency and to rotate ydir_centre</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span>
+        <span class="n">xdir_centre</span> <span class="o">!=</span> <span class="mi">0</span>
+    <span class="p">),</span> <span class="s2">&quot;ERROR: Linear dependency while placing pad. Choose a different param.orientation vector.&quot;</span>
+
+    <span class="c1"># rotate ydir_centre around zdir_centre to rotate silicone pad</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">theta</span>
+    <span class="n">ydir_centre</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ydir_centre</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+        <span class="o">+</span> <span class="n">xdir_centre</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+        <span class="o">+</span> <span class="n">zdir_centre</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">zdir_centre</span><span class="p">,</span> <span class="n">ydir_centre</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cos</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">)))</span>
+    <span class="p">)</span>  <span class="c1"># rodrigues rotation</span>
+
+    <span class="k">return</span> <span class="n">xdir_centre</span><span class="p">,</span> <span class="n">ydir_centre</span><span class="p">,</span> <span class="n">zdir_centre</span></div>
+
+
+
+<div class="viewcode-block" id="electrode_placement">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.electrodes.electrode_placement">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">electrode_placement</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">pathfem_modif</span><span class="p">,</span> <span class="n">peripheral_coord</span><span class="o">=</span><span class="p">[])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">sim_struct</span><span class="o">.</span><span class="n">SESSION</span><span class="p">,</span> <span class="n">Msh</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set up electrode placement and generate a simulation session for tDCS in SimNIBS.</span>
+
+<span class="sd">    This function:</span>
+<span class="sd">        - Creates a SimNIBS session (`sim_struct.SESSION`), assigns fields and currents.</span>
+<span class="sd">        - Defines electrode properties (dimensions, thickness, etc.) and places them on the mesh.</span>
+<span class="sd">        - Optionally uses peripheral coordinates if provided, otherwise calculates electrode center positions using `small_standard_positions`.</span>
+<span class="sd">        - Adds an isolation shape from an SVG file for the silicone pad.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        A mesh object representing the head model.</span>
+<span class="sd">    pathfem_modif : str</span>
+<span class="sd">        A file path or identifier for the FEM mesh output.</span>
+<span class="sd">    peripheral_coord : list, optional</span>
+<span class="sd">        A list of additional electrode center coordinates for peripheral electrodes.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        - SimNIBS SESSION object (`S`).</span>
+<span class="sd">        - Modified Msh object (`mesh_elec`) with electrodes placed.</span>
+<span class="sd">        - List of surfaces (`elec_surfaces`) corresponding to electrodes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">sim_struct</span><span class="o">.</span><span class="n">SESSION</span><span class="p">()</span>
+    <span class="n">S</span><span class="o">.</span><span class="n">pathfem</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span><span class="p">)</span>
+    <span class="n">S</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">fields</span>
+
+    <span class="n">tdcslist</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">add_tdcslist</span><span class="p">()</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">currents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">currents</span><span class="p">)</span>
+
+    <span class="c1"># define electrodes (first center one and then lateral ones) and placement (by polar coordinates)</span>
+    <span class="n">elec_names</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">names</span>
+    <span class="k">if</span> <span class="n">peripheral_coord</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">pos_centre</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">pos_centre</span><span class="p">)</span>
+        <span class="n">mesh_skull</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">(</span><span class="mi">1005</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">pos_centre_surface</span><span class="p">,</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh_skull</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">find_closest_node</span><span class="p">(</span>
+            <span class="n">pos_centre</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">elec_centres</span> <span class="o">=</span> <span class="p">[</span><span class="n">pos_centre_surface</span><span class="p">]</span> <span class="o">+</span> <span class="n">peripheral_coord</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xdir_centre</span><span class="p">,</span> <span class="n">ydir_centre</span><span class="p">,</span> <span class="n">zdir_centre</span> <span class="o">=</span> <span class="n">small_standard_positions</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">n_electrodes</span><span class="p">):</span>
+        <span class="n">elec</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">add_electrode</span><span class="p">()</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">elec_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">channelnr</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="s2">&quot;plane&quot;</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">centre</span> <span class="o">=</span> <span class="n">elec_centres</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="s2">&quot;ellipse&quot;</span>
+        <span class="n">elec</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">h_electrode</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">elec</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">d_centerAct</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">d_centerAct</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">elec</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">d_outerAct</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">d_outerAct</span><span class="p">]</span>
+
+    <span class="c1"># cond[100-1] = electrode rubber (added automatically)</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">500</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Central_electrode&quot;</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">500</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;Electrode&quot;</span><span class="p">]</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">100</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;ElecRubber&quot;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">n_electrodes</span><span class="p">):</span>
+        <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">500</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">500</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">500</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Peripheral_electrode</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">100</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">100</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">100</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">100</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="c1"># Add isolation</span>
+    <span class="n">s_pad</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">add_electrode</span><span class="p">()</span>
+
+    <span class="c1"># Assign it to the last channel</span>
+    <span class="n">s_pad</span><span class="o">.</span><span class="n">channelnr</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">n_electrodes</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">s_pad</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Silicon Pad&quot;</span>
+
+    <span class="c1"># Calculate set of vertices of EASEE isolation shape</span>
+    <span class="n">vertices</span> <span class="o">=</span> <span class="n">svg_to_nodes</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">isolation_shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Isolation shape</span>
+    <span class="n">s_pad</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="s2">&quot;plane&quot;</span>
+    <span class="n">s_pad</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="s2">&quot;custom&quot;</span>
+
+    <span class="c1"># Isolation vertices</span>
+    <span class="n">s_pad</span><span class="o">.</span><span class="n">vertices</span> <span class="o">=</span> <span class="n">vertices</span>
+
+    <span class="c1"># Isolation thickness</span>
+    <span class="n">s_pad</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">h_silicon</span><span class="p">]</span>
+
+    <span class="c1"># Isolation position</span>
+    <span class="n">s_pad</span><span class="o">.</span><span class="n">centre</span> <span class="o">=</span> <span class="n">pos_centre_surface</span>
+
+    <span class="n">xdir_centre</span><span class="p">,</span> <span class="n">ydir_centre</span><span class="p">,</span> <span class="n">zdir_centre</span> <span class="o">=</span> <span class="n">small_standard_positions</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+
+    <span class="c1"># Isolation pos_ydir</span>
+    <span class="n">s_pad</span><span class="o">.</span><span class="n">pos_ydir</span> <span class="o">=</span> <span class="n">ydir_centre</span>
+
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">mesh</span> <span class="o">=</span> <span class="n">mesh</span>
+    <span class="n">mesh_elec</span><span class="p">,</span> <span class="n">elec_surfaces</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Msh</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">_place_electrodes</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">S</span><span class="p">,</span> <span class="n">mesh_elec</span><span class="p">,</span> <span class="n">elec_surfaces</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

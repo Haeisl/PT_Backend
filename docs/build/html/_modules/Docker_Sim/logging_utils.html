@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docker_Sim.logging_utils &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">Docker_Sim.logging_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for Docker_Sim.logging_utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+
+<div class="viewcode-block" id="MultilineFormatter">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.logging_utils.MultilineFormatter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultilineFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A custom logging formatter that handles multiline log messages.</span>
+
+<span class="sd">    This formatter splits messages by their newline characters and prefixes</span>
+<span class="sd">    each line with a visual tree-like structure (─, ┬, ├, └). This allows for</span>
+<span class="sd">    better readability of complex or multiline log messages.</span>
+
+<span class="sd">    Usage example</span>
+<span class="sd">    -------------</span>
+<span class="sd">    logger = logging.getLogger(&quot;my_logger&quot;)</span>
+<span class="sd">    handler = logging.StreamHandler()</span>
+<span class="sd">    handler.setFormatter(MultilineFormatter())</span>
+<span class="sd">    logger.addHandler(handler)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="MultilineFormatter.format">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.logging_utils.MultilineFormatter.format">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">LogRecord</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Format a logging record, inserting visual delimiters for multiline messages.</span>
+
+<span class="sd">        This overrides the default `format` method to introduce tree-like</span>
+<span class="sd">        decorations for messages split across multiple lines. Each line is</span>
+<span class="sd">        formatted separately, and the record&#39;s attributes (e.g., name, levelname)</span>
+<span class="sd">        are manipulated to maintain alignment.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        record : logging.LogRecord</span>
+<span class="sd">            The LogRecord to be processed.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            A string containing the formatted log message(s).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Save original message and other attributes</span>
+        <span class="n">original_msg</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">msg</span>
+        <span class="n">original_fileline</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">&quot;fileline&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">original_levelname</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">levelname</span>
+        <span class="n">original_name</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="c1"># Split the message into lines</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">original_msg</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">]&quot;</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;─ </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">fileline</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">lineno</span><span class="si">}</span><span class="s2">]&quot;</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">]&quot;</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;┬ </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">fileline</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">lineno</span><span class="si">}</span><span class="s2">]&quot;</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">fileline</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">levelname</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">levelname</span><span class="p">)</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;├──── &quot;</span> <span class="o">+</span> <span class="n">line</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">fileline</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">levelname</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">levelname</span><span class="p">)</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;└──── &quot;</span> <span class="o">+</span> <span class="n">line</span>
+
+            <span class="c1"># Format the record</span>
+            <span class="n">formatted</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="n">formatted</span>
+
+            <span class="c1"># Add newline if not the last line</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="c1"># Restore original message and attributes</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">original_msg</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">fileline</span> <span class="o">=</span> <span class="n">original_fileline</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">original_name</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">levelname</span> <span class="o">=</span> <span class="n">original_levelname</span>
+
+        <span class="k">return</span> <span class="n">output</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CenteredFormatter">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.logging_utils.CenteredFormatter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CenteredFormatter</span><span class="p">(</span><span class="n">MultilineFormatter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A custom logging formatter that center-aligns the logger name and level.</span>
+
+<span class="sd">    This formatter inherits from MultilineFormatter, adding center alignment</span>
+<span class="sd">    to the `name` and `levelname` fields in each log record.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CenteredFormatter.format">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.logging_utils.CenteredFormatter.format">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Format the log record to center-align the logger name and level.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        record : logging.LogRecord</span>
+<span class="sd">            The LogRecord to be processed.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            A string with the final, formatted message (possibly multiline).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Modify the `name` and `levelname` attributes to center-align</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:^14}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">levelname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:^10}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">levelname</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="register_excepthook">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.logging_utils.register_excepthook">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_excepthook</span><span class="p">(</span><span class="n">logger</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Register a global exception hook that logs unhandled exceptions.</span>
+
+<span class="sd">    This function redirects the default sys.excepthook to a custom hook that</span>
+<span class="sd">    logs unhandled exceptions at the DEBUG and CRITICAL levels. It also</span>
+<span class="sd">    passes KeyboardInterrupt to the original excepthook, preserving the</span>
+<span class="sd">    default behavior for Ctrl+C interrupts.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    logger : logging.Logger</span>
+<span class="sd">        A logging.Logger instance to which uncaught exceptions will be logged.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_excep</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">):</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">__excepthook__</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Traceback&quot;</span><span class="p">,</span>
+            <span class="n">exc_info</span><span class="o">=</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span>
+            <span class="s2">&quot;Uncaught exception&quot;</span><span class="p">,</span>
+            <span class="n">exc_info</span><span class="o">=</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">excepthook</span> <span class="o">=</span> <span class="n">log_excep</span></div>
+
+
+
+<div class="viewcode-block" id="unregister_excepthook">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.logging_utils.unregister_excepthook">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unregister_excepthook</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Unregister the custom exception hook, restoring the default Python behavior.</span>
+
+<span class="sd">    This function resets sys.excepthook back to sys.__excepthook__, effectively</span>
+<span class="sd">    removing any custom logging hooks that were registered via register_excepthook.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">excepthook</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__excepthook__</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

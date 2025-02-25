@@ -1,0 +1,258 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>process_simulations.process_data_functions &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">process_simulations.process_data_functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for process_simulations.process_data_functions</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module processes simulation data for different configurations and patients.</span>
+<span class="sd">It includes functions to convert simulation data to JSON format, create 3D data files,</span>
+<span class="sd">and manage the storage and compression of these files.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+<span class="sd">    - convert_data_to_json : Convert simulation data to JSON format for a given configuration, electrode, and patient.</span>
+<span class="sd">    - create_one_json_data_file : Create a single JSON data file from multiple simulation outputs for a given configuration and patient.</span>
+
+<span class="sd">Dependencies</span>
+<span class="sd">------------</span>
+<span class="sd">    - json : For reading and writing JSON files.</span>
+<span class="sd">    - os : For file and directory operations.</span>
+<span class="sd">    - shutil : For high-level file operations.</span>
+<span class="sd">    - zlib : For compressing data.</span>
+<span class="sd">    - numpy : For numerical operations and statistics.</span>
+<span class="sd">    - database_params : Custom module for database parameters and paths.</span>
+<span class="sd">    - process_simulations.process_helper_functions : Custom module for creating tag-based dictionaries.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zlib</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">process_simulations.process_helper_functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_tag_based_dictionary</span>
+
+
+<div class="viewcode-block" id="convert_data_to_json">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_data_functions.convert_data_to_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_data_to_json</span><span class="p">(</span><span class="n">_mesh</span><span class="p">,</span> <span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_current_electrode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert simulation data to JSON format for a given configuration, electrode, and patient.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _mesh : object</span>
+<span class="sd">        Mesh object containing simulation data.</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        Configuration ID.</span>
+<span class="sd">    _current_electrode : str</span>
+<span class="sd">        Current electrode ID.</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        Patient ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Median, mean, and 95th percentile of the combined magnitudes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;============================= &quot;</span> <span class="o">+</span> <span class="n">_current_electrode</span> <span class="o">+</span> <span class="s2">&quot; =============================&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tags...&quot;</span><span class="p">)</span>
+    <span class="n">all_tags</span> <span class="o">=</span> <span class="n">_mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulation data...&quot;</span><span class="p">)</span>
+    <span class="n">all_magnE_dict</span><span class="p">,</span> <span class="n">mtags</span> <span class="o">=</span> <span class="n">create_tag_based_dictionary</span><span class="p">(</span><span class="n">all_tags</span><span class="p">,</span> <span class="n">_mesh</span><span class="o">.</span><span class="n">elmdata</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="n">all_E_dict</span><span class="p">,</span> <span class="n">vtags</span> <span class="o">=</span> <span class="n">create_tag_based_dictionary</span><span class="p">(</span><span class="n">all_tags</span><span class="p">,</span> <span class="n">_mesh</span><span class="o">.</span><span class="n">elmdata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="n">save_path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span> <span class="o">/</span> <span class="n">_current_electrode</span>
+    <span class="n">save_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Save magnitude data to JSON files</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">all_magnE_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">},</span> <span class="n">save_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_magnE_dict.json&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Save vector field data to JSON files</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">all_E_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">},</span> <span class="n">save_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_E_dict.json&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Combine values for specific volume tags</span>
+    <span class="n">volume_tags</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span> <span class="s2">&quot;9&quot;</span><span class="p">,</span> <span class="s2">&quot;10&quot;</span><span class="p">}</span>
+    <span class="n">combined_values</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">all_magnE_dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">volume_tags</span><span class="p">:</span>
+            <span class="n">combined_values</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">all_magnE_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+    <span class="c1"># Calculate and return the median, mean, and 95th percentile of the combined values</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">combined_values</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">combined_values</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">combined_values</span><span class="p">,</span> <span class="mi">95</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_one_json_data_file">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_data_functions.create_one_json_data_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_one_json_data_file</span><span class="p">(</span><span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_successful_indices</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a single JSON data file from multiple simulation outputs for a given configuration and patient.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        Configuration ID.</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        Patient ID.</span>
+<span class="sd">    _successful_indices : list</span>
+<span class="sd">        List of successful simulation indices.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">Electrodes</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span>
+
+    <span class="c1"># Define tags to be processed</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1001&quot;</span><span class="p">,</span> <span class="s2">&quot;1002&quot;</span><span class="p">,</span> <span class="s2">&quot;1003&quot;</span><span class="p">,</span> <span class="s2">&quot;1006&quot;</span><span class="p">,</span> <span class="s2">&quot;1008&quot;</span><span class="p">,</span> <span class="s2">&quot;1009&quot;</span><span class="p">,</span> <span class="s2">&quot;1010&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span> <span class="s2">&quot;9&quot;</span><span class="p">,</span> <span class="s2">&quot;10&quot;</span><span class="p">]</span>  <span class="c1"># 1005 , 5 , 7</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_successful_indices</span><span class="p">:</span>
+        <span class="n">Magnitude</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">Vectorfield</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">file_path_magn</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;Electrode_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">_magnE_dict.json&quot;</span>
+            <span class="n">file_path_vfield</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;Electrode_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">_E_dict.json&quot;</span>
+
+            <span class="n">magn_data</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">file_path_magn</span><span class="p">)</span>
+            <span class="n">vfield_data</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">file_path_vfield</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">magn_data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">vfield_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span>
+
+            <span class="n">Magnitude</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">magn_data</span><span class="p">)</span>
+            <span class="n">Vectorfield</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">vfield_data</span><span class="p">)</span>
+
+        <span class="n">Electrodes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;Electrode_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Magnitude&quot;</span><span class="p">:</span> <span class="n">Magnitude</span><span class="p">,</span>
+            <span class="s2">&quot;Vectorfield&quot;</span><span class="p">:</span> <span class="n">Vectorfield</span>
+        <span class="p">}</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Combining...&quot;</span><span class="p">)</span>
+    <span class="n">merged_data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;Electrodes&quot;</span><span class="p">:</span> <span class="n">Electrodes</span><span class="p">,</span>
+        <span class="s2">&quot;Metadata&quot;</span><span class="p">:</span> <span class="p">{}</span>
+    <span class="p">}</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating JSON...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">merged_data</span><span class="p">,</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_data.json&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Compress JSON data with zlib</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compressing JSON...&quot;</span><span class="p">)</span>
+    <span class="n">compressed_data</span> <span class="o">=</span> <span class="n">zlib</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">merged_data</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="n">compressed_file</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_compressed_data.zlib&quot;</span>
+    <span class="n">compressed_file</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">)</span>
+
+    <span class="c1"># Delete individual files</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Deleting...&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_successful_indices</span><span class="p">:</span>
+        <span class="n">electrode_folder</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;Electrode_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">electrode_folder</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">electrode_folder</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

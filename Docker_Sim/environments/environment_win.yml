@@ -1,0 +1,30 @@
+name: MA_ETPT_ENV
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python
+  - numpy
+  - scipy
+  - h5py
+  - pyopengl
+  - pytest
+  - cython
+  - mock
+  - packaging
+  - requests
+  - freeglut
+  - vs2015_runtime
+  - pip
+  - matplotlib
+  - boost
+  - tbb
+  - libwebp
+  - pillow
+  - nibabel
+  - pyqt
+  - mkl
+  - pip:
+    - fmm3dpy
+    - charm_gems
+    - -r requirements.txt

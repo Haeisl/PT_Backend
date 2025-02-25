@@ -1,0 +1,1362 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docker_Sim.functions &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">Docker_Sim.functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for Docker_Sim.functions</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">gmsh</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">meshlib.mrmeshpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mrmeshpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">param</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">electrodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">electrode_placement</span><span class="p">,</span> <span class="n">small_standard_positions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">param</span><span class="w"> </span><span class="kn">import</span> <span class="n">cond</span> <span class="k">as</span> <span class="n">c</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">param</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">d_rect</span><span class="p">,</span>
+    <span class="n">h_electrode</span><span class="p">,</span>
+    <span class="n">h_silicon</span><span class="p">,</span>
+    <span class="n">isolation_shape</span><span class="p">,</span>
+    <span class="n">n_electrodes</span><span class="p">,</span>
+    <span class="n">onamehead</span><span class="p">,</span>
+    <span class="n">pathfem</span><span class="p">,</span>
+    <span class="n">pos_centre</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvexHull</span><span class="p">,</span> <span class="n">KDTree</span><span class="p">,</span> <span class="n">cKDTree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">cdist</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simnibs</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_tools</span><span class="p">,</span> <span class="n">sim_struct</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simnibs.mesh_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simnibs.mesh_tools.mesh_io</span><span class="w"> </span><span class="kn">import</span> <span class="n">Elements</span><span class="p">,</span> <span class="n">Msh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simnibs.simulation</span><span class="w"> </span><span class="kn">import</span> <span class="n">fem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">svg_to_nodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">svg_to_nodes</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;planningtool&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="remove_from_mesh">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.remove_from_mesh">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_from_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove volume(s) with the specified tag(s) from a mesh.</span>
+
+<span class="sd">    This function calls mesh.remove_from_mesh(tag) internally and verifies</span>
+<span class="sd">    that no elements with the old tag remain.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        The Msh object from which to remove elements.</span>
+<span class="sd">    tag : int or list of int</span>
+<span class="sd">        An integer or list of integers representing the volume tags to be removed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Msh</span>
+<span class="sd">        The updated Msh object with the specified volume(s) removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mesh_core</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">remove_from_mesh</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_core</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">nodes_with_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> \
+        <span class="s2">&quot;volume </span><span class="si">%i</span><span class="s2"> has not been removed completely!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mesh_core</span></div>
+
+
+
+<div class="viewcode-block" id="remove_skin">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.remove_skin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_skin</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove skin volume and surface from the mesh.</span>
+
+<span class="sd">    Internally calls remove_from_mesh with tags [5, 1005], which typically correspond</span>
+<span class="sd">    to skin volumes/surfaces in this setup.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        The Msh object from which to remove skin.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Msh</span>
+<span class="sd">        The updated Msh object with skin removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">remove_from_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1005</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="retag">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.retag">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retag</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">otag</span><span class="p">,</span> <span class="n">ntag</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Change element tags from old tag (otag) to new tag (ntag).</span>
+
+<span class="sd">    This function modifies mesh.elm.tag1 and mesh.elm.tag2 in-place to switch</span>
+<span class="sd">    elements from otag to ntag, then checks consistency.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        The Msh object whose elements will be retagged.</span>
+<span class="sd">    otag : int</span>
+<span class="sd">        The old tag to be replaced.</span>
+<span class="sd">    ntag : int</span>
+<span class="sd">        The new tag that replaces the old tag.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Modifies mesh in place.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_nodes_otag</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">nodes_with_tag</span><span class="p">(</span><span class="n">otag</span><span class="p">))</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span> <span class="o">==</span> <span class="n">otag</span><span class="p">,</span> <span class="n">ntag</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span><span class="p">)</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">==</span> <span class="n">otag</span><span class="p">,</span> <span class="n">ntag</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span><span class="p">)</span>
+    <span class="n">n_nodes_ntag</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">nodes_with_tag</span><span class="p">(</span><span class="n">ntag</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">n_nodes_otag</span> <span class="o">==</span> <span class="n">n_nodes_ntag</span><span class="p">,</span> <span class="s2">&quot;error in retagging!&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">nodes_with_tag</span><span class="p">(</span><span class="n">otag</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;retag left nodes with the old tag!&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="compact_bone_to_skin">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.compact_bone_to_skin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compact_bone_to_skin</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reassign compact bone tags to skin tags.</span>
+
+<span class="sd">    This function calls retag to replace the compact bone tags (1007, 7)</span>
+<span class="sd">    with the skin tags (1005, 5).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        The Msh object to modify.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Modifies mesh in place.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">retag</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="mi">1007</span><span class="p">,</span> <span class="mi">1005</span><span class="p">)</span>
+    <span class="n">retag</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="compact_bone_back">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.compact_bone_back">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compact_bone_back</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reassign skin tags back to compact bone.</span>
+
+<span class="sd">    This reverses the assignments done in compact_bone_to_skin by replacing</span>
+<span class="sd">    skin tags (1005, 5) with bone tags (1007, 7).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        The Msh object to modify.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Modifies mesh in place.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">retag</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="mi">1005</span><span class="p">,</span> <span class="mi">1007</span><span class="p">)</span>
+    <span class="n">retag</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mesh_get_outer_surface">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.mesh_get_outer_surface">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mesh_get_outer_surface</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ntag</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Msh</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the outer surface from a mesh as a new Msh.</span>
+
+<span class="sd">    This function identifies all outside faces (triangles on the outer surface)</span>
+<span class="sd">    and creates a new Msh object containing only those faces, assigning them a</span>
+<span class="sd">    specified tag (ntag).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        The original mesh.</span>
+<span class="sd">    ntag : int</span>
+<span class="sd">        The tag to assign to the new surface elements.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Msh</span>
+<span class="sd">        A new Msh object containing only the outer surface triangles.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">faces</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">get_outside_faces</span><span class="p">()</span>
+    <span class="n">bound</span> <span class="o">=</span> <span class="n">Msh</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">Elements</span><span class="p">(</span><span class="n">triangles</span><span class="o">=</span><span class="n">faces</span><span class="p">))</span>
+    <span class="n">bound</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">bound</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">ntag</span><span class="p">)</span>
+    <span class="n">bound</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">bound</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">ntag</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bound</span></div>
+
+
+
+<div class="viewcode-block" id="msh2_to_simnibs">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.msh2_to_simnibs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">msh2_to_simnibs</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a .msh file to a SimNIBS-compatible format (removes carriage returns).</span>
+
+<span class="sd">    This function reads an existing .msh file in binary mode, strips carriage returns,</span>
+<span class="sd">    writes out a new file named &#39;[original]_simnibs.msh&#39;, and then reads it via</span>
+<span class="sd">    mesh_tools.read_msh.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        The path to the original .msh file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Msh</span>
+<span class="sd">        A Msh object read from the newly created &#39;_simnibs.msh&#39; file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_dots</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
+    <span class="n">extension_pos</span> <span class="o">=</span> <span class="n">all_dots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f1</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">extension_pos</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_simnibs.msh&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f2</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">f1</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+            <span class="n">f2</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">extension_pos</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_simnibs.msh&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="refine">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.refine">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">refine</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">refined_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Refine the mesh using gmsh and return the refined mesh.</span>
+
+<span class="sd">    This function:</span>
+<span class="sd">        - Writes the original mesh to &#39;mesh_before_refining.msh&#39;.</span>
+<span class="sd">        - Uses gmsh to refine the mesh.</span>
+<span class="sd">        - Cleans up carriage returns in the intermediate file.</span>
+<span class="sd">        - Saves the final refined mesh under &#39;refined_name&#39;.</span>
+<span class="sd">        - Removes intermediate .msh files except for the one containing &#39;skull&#39; in its name.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        The mesh to refine.</span>
+<span class="sd">    path : pathlib.Path</span>
+<span class="sd">        A pathlib.Path where intermediate and final files will be stored.</span>
+<span class="sd">    refined_name : str</span>
+<span class="sd">        A string name for the final refined mesh file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Msh</span>
+<span class="sd">        The refined Msh object read from the final file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Skull global refining:&#39;</span><span class="p">)</span>
+
+    <span class="n">mesh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="s1">&#39;mesh_before_refining.msh&#39;</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DUDE </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="s2"> mesh_after_refining_pre.msh&quot;</span><span class="p">)</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="s2">&quot;mesh_before_refining.msh&quot;</span><span class="p">))</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">refine</span><span class="p">()</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">setNumber</span><span class="p">(</span><span class="s2">&quot;Mesh.MshFileVersion&quot;</span><span class="p">,</span> <span class="mf">2.2</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="s2">&quot;mesh_after_refining_pre.msh&quot;</span><span class="p">))</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span>
+
+    <span class="n">buffer_size</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c1"># 1 MB chunks</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="s2">&quot;mesh_after_refining_pre.msh&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f1</span><span class="p">,</span> \
+         <span class="nb">open</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="s2">&quot;mesh_after_refining_gmsh.msh&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f2</span><span class="p">:</span>
+        <span class="k">while</span> <span class="n">chunk</span> <span class="o">:=</span> <span class="n">f1</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">buffer_size</span><span class="p">):</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">f2</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done!&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Refined mesh saving:&quot;</span><span class="p">)</span>
+
+    <span class="n">refined_skull</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="s2">&quot;mesh_after_refining_gmsh.msh&quot;</span><span class="p">))</span>
+    <span class="n">refined_skull</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="n">refined_name</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.msh&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;skull&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">file_path</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">file_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error while deleting file: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">, Error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done!&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="n">refined_name</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="join_and_connect">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.join_and_connect">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">join_and_connect</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Msh</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Join two meshes and merge shared nodes.</span>
+
+<span class="sd">    This function searches for coincident nodes between mesh1 and mesh2 using</span>
+<span class="sd">    a KD-Tree. Shared nodes are merged, while non-shared nodes are appended</span>
+<span class="sd">    to the first mesh.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh1 : Msh</span>
+<span class="sd">        The primary Msh object to which the second is joined.</span>
+<span class="sd">    mesh2 : Msh</span>
+<span class="sd">        The secondary Msh object to be joined.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Msh</span>
+<span class="sd">        A new Msh object containing both meshes, with shared nodes merged.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kdtree</span> <span class="o">=</span> <span class="n">cKDTree</span><span class="p">(</span><span class="n">mesh1</span><span class="o">.</span><span class="n">nodes</span><span class="p">[:])</span>  <span class="c1"># type: ignore</span>
+    <span class="n">distance</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">kdtree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">mesh2</span><span class="o">.</span><span class="n">nodes</span><span class="p">[:])</span>  <span class="c1"># type: ignore</span>
+
+    <span class="n">shared_nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">new_m2_node_numbers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">mesh2</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">nr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">new_m2_node_numbers</span><span class="p">[</span><span class="n">shared_nodes</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="n">shared_nodes</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">new_m2_node_numbers</span><span class="p">[</span><span class="o">~</span><span class="n">shared_nodes</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">~</span><span class="n">shared_nodes</span><span class="p">))</span> <span class="o">+</span> <span class="n">mesh1</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">nr</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">new_m2_nnl</span> <span class="o">=</span> <span class="n">new_m2_node_numbers</span><span class="p">[</span><span class="n">mesh2</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">new_m2_nnl</span><span class="p">[</span><span class="n">mesh2</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">elm_type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">joined</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">mesh1</span><span class="p">)</span>
+    <span class="n">joined</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">mesh1</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span><span class="p">,</span> <span class="n">mesh2</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="o">~</span><span class="n">shared_nodes</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+    <span class="p">)</span>
+    <span class="n">joined</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">mesh1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span><span class="p">,</span> <span class="n">new_m2_nnl</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+    <span class="p">)</span>
+    <span class="n">joined</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">elm_type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mesh1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">elm_type</span><span class="p">,</span> <span class="n">mesh2</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">elm_type</span><span class="p">)</span>
+    <span class="n">joined</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mesh1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span><span class="p">,</span> <span class="n">mesh2</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span><span class="p">)</span>
+    <span class="n">joined</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mesh1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span><span class="p">,</span> <span class="n">mesh2</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">joined</span></div>
+
+
+<div class="viewcode-block" id="run_simulation">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.run_simulation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_simulation</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">electrode_surfaces</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run a tDCS simulation using a custom Neumann-based solver.</span>
+
+<span class="sd">    This function:</span>
+<span class="sd">        - Adjusts electrode conductivities in the session (S).</span>
+<span class="sd">        - Prepares the mesh for simulation.</span>
+<span class="sd">        - Calls a custom Neumann solver (&#39;custom_tdcs_neumann&#39;) to calculate potential.</span>
+<span class="sd">        - Calculates resulting fields and writes outputs to disk.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    S : SimNIBS SESSION</span>
+<span class="sd">        A SimNIBS SESSION object with all electrode/mesh data set up.</span>
+<span class="sd">    electrode_surfaces : list</span>
+<span class="sd">        A list of surfaces used for the electrodes.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Results are written to files and appended to the session object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;simulation is running ...&quot;</span><span class="p">)</span>
+    <span class="n">tdcslist</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">poslists</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># cond[100-1] = electrode rubber (added automatically)</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">500</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Central_electrode&quot;</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">500</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;Electrode&quot;</span><span class="p">]</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">100</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;ElecRubber&quot;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_electrodes</span><span class="p">):</span>
+        <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">500</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">500</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">500</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Peripheral_electrode</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">100</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">100</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">100</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">100</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;WM&quot;</span><span class="p">]</span>  <span class="c1"># WM</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;GM&quot;</span><span class="p">]</span>  <span class="c1"># GM</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">3</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;CSF&quot;</span><span class="p">]</span>  <span class="c1"># CSF</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">7</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;Skin&quot;</span><span class="p">]</span>  <span class="c1"># Skull (was swapped with skin)</span>
+
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">6</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;Eyeballs&quot;</span><span class="p">]</span>  <span class="c1"># eyeballs</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">5</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;CompactBone&quot;</span><span class="p">]</span>  <span class="c1"># Skin  (was swapped with skull)</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">8</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;SpongyBone&quot;</span><span class="p">]</span>  <span class="c1"># spongy bone</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">9</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;Blood&quot;</span><span class="p">]</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond</span><span class="p">[</span><span class="mi">10</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;Muscle&quot;</span><span class="p">]</span>  <span class="c1"># muscle</span>
+
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">onamehead</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_TDCS_1&quot;</span>
+    <span class="n">fn_simu</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">pathfem</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">filename</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">_prepare</span><span class="p">()</span>
+    <span class="n">mesh_elec</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">pathfem</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">S</span><span class="o">.</span><span class="n">fnamehead</span><span class="p">)</span>
+
+    <span class="n">cond</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">cond2elmdata</span><span class="p">(</span><span class="n">mesh_elec</span><span class="p">)</span>
+
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Start TDCS_neumann&#39;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">custom_tdcs_neumann</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">currents</span><span class="p">,</span> <span class="n">electrode_surface_tags</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Solve a tDCS electric potential using Neumann boundary conditions on electrodes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mesh : Msh</span>
+<span class="sd">            The Msh object containing the geometry.</span>
+<span class="sd">        cond : ElementData</span>
+<span class="sd">            An ElementData field with conductivity information.</span>
+<span class="sd">        currents : list</span>
+<span class="sd">            A list of currents corresponding to each electrode.</span>
+<span class="sd">        electrode_surface_tags : list</span>
+<span class="sd">            A list of surface tags where the boundary conditions apply.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        NodeData</span>
+<span class="sd">            A NodeData object named &#39;v&#39; with the resulting electric potential.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">electrode_surface_tags</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">currents</span><span class="p">),</span>\
+            <span class="s1">&#39;Please define one current per electrode&#39;</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">currents</span><span class="p">),</span> <span class="mf">0.</span><span class="p">),</span> <span class="s1">&#39;Sum of currents must be zero&#39;</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">fem</span><span class="o">.</span><span class="n">TDCSFEMNeumann</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">electrode_surface_tags</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">solver_options</span><span class="o">=</span><span class="s1">&#39;pardiso&#39;</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">assemble_rhs</span><span class="p">(</span><span class="n">electrode_surface_tags</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">currents</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">S</span><span class="p">,</span> <span class="n">b</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">mesh_io</span><span class="o">.</span><span class="n">NodeData</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="n">mesh</span><span class="p">)</span>
+
+    <span class="n">v</span> <span class="o">=</span> <span class="n">custom_tdcs_neumann</span><span class="p">(</span><span class="n">mesh_elec</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">currents</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">electrode_surfaces</span><span class="p">))</span>
+    <span class="c1"># v = fem.tdcs_neumann(mesh_elec, cond, tdcslist.currents, np.unique(electrode_surfaces))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;It took </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2"> 0.2f</span><span class="si">}</span><span class="s2"> second(s) to complete.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># field calculation</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">fem</span><span class="o">.</span><span class="n">calc_fields</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">postprocess</span><span class="p">,</span> <span class="n">cond</span><span class="o">=</span><span class="n">cond</span><span class="p">)</span>
+
+    <span class="n">final_name</span> <span class="o">=</span> <span class="n">fn_simu</span> <span class="o">+</span> <span class="s2">&quot;_scalar.msh&quot;</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">final_name</span><span class="p">)</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">fnamefem</span> <span class="o">=</span> <span class="n">final_name</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">view</span><span class="p">(</span>
+        <span class="n">visible_tags</span><span class="o">=</span><span class="n">sim_struct</span><span class="o">.</span><span class="n">_surf_preferences</span><span class="p">(</span><span class="n">m</span><span class="p">),</span>
+        <span class="n">visible_fields</span><span class="o">=</span><span class="n">sim_struct</span><span class="o">.</span><span class="n">_field_preferences</span><span class="p">(</span><span class="n">tdcslist</span><span class="o">.</span><span class="n">postprocess</span><span class="p">))</span>
+
+    <span class="n">el_geo_fn</span> <span class="o">=</span> <span class="n">fn_simu</span> <span class="o">+</span> <span class="s1">&#39;_el_currents.geo&#39;</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">_electrode_current_geo</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">el_geo_fn</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">add_merge</span><span class="p">(</span><span class="n">filename</span> <span class="o">+</span> <span class="s2">&quot;_el_currents.geo&quot;</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">add_view</span><span class="p">(</span><span class="n">ColormapNumber</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ColormapAlpha</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span> <span class="n">Visible</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">write_opt</span><span class="p">(</span><span class="n">final_name</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="write_info">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.write_info">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_info</span><span class="p">(</span><span class="n">pathfem_modif</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write simulation and positioning parameters to a .infofile.</span>
+
+<span class="sd">    This function uses a global &#39;param&#39; object (not shown in this snippet)</span>
+<span class="sd">    to retrieve various simulation parameters and writes them to</span>
+<span class="sd">    &#39;param.infofile&#39;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pathfem_modif : pathlib.Path</span>
+<span class="sd">        A path object where param.infofile is stored.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        Outputs text to a file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">infofile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;param.infofile&quot;</span><span class="p">),</span> <span class="s1">&#39;w+&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;== Filenames:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;onamehead = &#39;</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">onamehead</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;fnamehead = &#39;</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">fnamehead</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;pathfem = &#39;</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">pathfem</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;infofile = &#39;</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">infofile</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;== Simulation Parameters:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;n_electrodes = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">n_electrodes</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;currents = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">currents</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;names = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">names</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;theta = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;fields = &#39;</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">fields</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;cond = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">cond</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;== Positioning Parameters:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;d_intElec = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">d_intElec</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;d_centerCompl = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">d_centerCompl</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;d_outerCompl = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">d_outerCompl</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;d_outerAct = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">d_outerAct</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;d_border = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">d_border</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;h_silicon = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">h_silicon</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;h_electrode = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">h_electrode</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;pos_centre = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">pos_centre</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;orientation = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">orientation</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">infofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">infofile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="distance">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.distance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the Euclidean distance between two 3D points.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    point1 : tuple or list</span>
+<span class="sd">        A tuple/list with (x, y, z) coordinates.</span>
+<span class="sd">    point2 : tuple or list</span>
+<span class="sd">        A tuple/list with (x, y, z) coordinates.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        The Euclidean distance between the two points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">z1</span> <span class="o">=</span> <span class="n">point1</span>
+    <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">z2</span> <span class="o">=</span> <span class="n">point2</span>
+    <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">x2</span> <span class="o">-</span> <span class="n">x1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">z2</span> <span class="o">-</span> <span class="n">z1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="find_diagonals">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.find_diagonals">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_diagonals</span><span class="p">(</span><span class="n">nodes_coord</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find two diagonal segments based on convex hull points.</span>
+
+<span class="sd">    This function:</span>
+<span class="sd">        - Computes the convex hull of the given node coordinates.</span>
+<span class="sd">        - Finds two pairs of points that are the farthest apart.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nodes_coord : numpy.ndarray</span>
+<span class="sd">        A NumPy array of shape (N, 3) representing node coordinates in 3D space.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        A list of two pairs of points (each pair is a list of two 3D coordinates),</span>
+<span class="sd">        representing the longest diagonals found among the hull points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">diagonals</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[]]</span>
+
+    <span class="n">hull</span> <span class="o">=</span> <span class="n">ConvexHull</span><span class="p">(</span><span class="n">nodes_coord</span><span class="p">)</span>
+
+    <span class="c1"># Extract the points forming the hull</span>
+    <span class="n">hullpoints</span> <span class="o">=</span> <span class="n">nodes_coord</span><span class="p">[</span><span class="n">hull</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">hdist</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">hullpoints</span><span class="p">,</span> <span class="n">hullpoints</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Get the farthest apart points</span>
+        <span class="n">bestpair</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">hdist</span><span class="o">.</span><span class="n">argmax</span><span class="p">(),</span> <span class="n">hdist</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># Print them</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">hullpoints</span><span class="p">[</span><span class="n">bestpair</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span><span class="w"> </span><span class="n">hullpoints</span><span class="p">[</span><span class="n">bestpair</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">diagonals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">hullpoints</span><span class="p">[</span><span class="n">bestpair</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">hullpoints</span><span class="p">[</span><span class="n">bestpair</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]</span>
+
+        <span class="n">hullpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">hullpoints</span><span class="p">,</span> <span class="p">(</span><span class="n">bestpair</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">diagonals</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="find_corners">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.find_corners">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_corners</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Locate corners (diagonal endpoints) of an electrode placed on a mesh.</span>
+
+<span class="sd">    This function:</span>
+<span class="sd">        - Sets up a temporary SimNIBS session and places a rectangular electrode on the given mesh.</span>
+<span class="sd">        - Extracts the electrode surface nodes, then identifies diagonal points via &#39;find_diagonals&#39;.</span>
+<span class="sd">        - Returns the diagonal corners and a modified mesh with the electrodes removed.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        A Msh object representing the main head mesh.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple containing:</span>
+<span class="sd">        - The list of diagonals (pairs of far-apart points) from the electrode surface.</span>
+<span class="sd">        - The mesh after removing the electrode volumes (tags [501, 502, 1501, 1502, 2101, 2102]).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="c1"># Initalize a session</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">sim_struct</span><span class="o">.</span><span class="n">SESSION</span><span class="p">()</span>
+    <span class="c1"># Name of head mesh</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">fnamehead</span> <span class="o">=</span> <span class="n">onamehead</span>
+    <span class="c1"># Output folder</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">pathfem</span> <span class="o">=</span> <span class="s1">&#39;rect_example_outputs/&#39;</span>
+
+    <span class="n">xdir_centre</span><span class="p">,</span> <span class="n">ydir_centre</span><span class="p">,</span> <span class="n">zdir_centre</span> <span class="o">=</span> <span class="n">small_standard_positions</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+
+    <span class="c1">#  electrode placement for rect example</span>
+
+    <span class="c1"># Initialize a tDCS simulation</span>
+    <span class="n">tdcslist</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">add_tdcslist</span><span class="p">()</span>
+
+    <span class="c1"># Set currents</span>
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">currents</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+
+    <span class="c1"># Initialize the cathode</span>
+    <span class="n">cathode</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">add_electrode</span><span class="p">()</span>
+    <span class="c1"># Connect electrode to first channel (-1e-3 mA, cathode)</span>
+    <span class="n">cathode</span><span class="o">.</span><span class="n">channelnr</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Electrode dimension</span>
+    <span class="n">cathode</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">d_rect</span><span class="p">,</span> <span class="n">d_rect</span><span class="p">]</span>  <span class="c1"># from new isolation design</span>
+
+    <span class="c1"># Rectangular shape</span>
+    <span class="n">cathode</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="s1">&#39;rect&#39;</span>
+
+    <span class="c1"># 5mm thickness</span>
+    <span class="n">cathode</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="p">[</span><span class="n">h_electrode</span><span class="p">]</span>
+
+    <span class="c1"># Electrode Position</span>
+    <span class="n">cathode</span><span class="o">.</span><span class="n">centre</span> <span class="o">=</span> <span class="n">pos_centre</span>
+
+    <span class="c1"># Electrode direction</span>
+    <span class="n">cathode</span><span class="o">.</span><span class="n">pos_ydir</span> <span class="o">=</span> <span class="n">ydir_centre</span>
+
+    <span class="c1">#  Add isolation</span>
+
+    <span class="n">isolation</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">add_electrode</span><span class="p">()</span>
+    <span class="c1"># Assign it to the second channel</span>
+    <span class="n">isolation</span><span class="o">.</span><span class="n">channelnr</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="c1"># Calculate set of vertices of EASEE isolation shape</span>
+    <span class="n">vertices</span> <span class="o">=</span> <span class="n">svg_to_nodes</span><span class="p">(</span><span class="n">isolation_shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Isolation shape</span>
+    <span class="n">isolation</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="s1">&#39;custom&#39;</span>
+
+    <span class="c1"># Isolation vertices</span>
+    <span class="n">isolation</span><span class="o">.</span><span class="n">vertices</span> <span class="o">=</span> <span class="n">vertices</span>
+
+    <span class="c1"># Isolation thickness</span>
+    <span class="n">isolation</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="p">[</span><span class="n">h_silicon</span><span class="p">]</span>
+
+    <span class="c1"># Isolation position</span>
+    <span class="n">isolation</span><span class="o">.</span><span class="n">centre</span> <span class="o">=</span> <span class="n">pos_centre</span>
+
+    <span class="c1"># Isolation pos_ydir</span>
+    <span class="n">isolation</span><span class="o">.</span><span class="n">pos_ydir</span> <span class="o">=</span> <span class="n">ydir_centre</span>
+
+    <span class="n">tdcslist</span><span class="o">.</span><span class="n">mesh</span> <span class="o">=</span> <span class="n">mesh</span>
+    <span class="n">mesh_core_elec</span><span class="p">,</span> <span class="n">elec_surfaces</span> <span class="o">=</span> <span class="n">tdcslist</span><span class="o">.</span><span class="n">_place_electrodes</span><span class="p">()</span>
+
+    <span class="n">mesh_rect_elec_surf</span> <span class="o">=</span> <span class="n">mesh_core_elec</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="n">elec_surfaces</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span> <span class="c1"># type: ignore</span>
+
+    <span class="n">nodes_coord</span> <span class="o">=</span> <span class="n">mesh_rect_elec_surf</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--- </span><span class="si">%s</span><span class="s2"> seconds ---&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;--- Diagonals calculation ---&#39;</span><span class="p">)</span>
+
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">diagonals</span> <span class="o">=</span> <span class="n">find_diagonals</span><span class="p">(</span><span class="n">nodes_coord</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--- </span><span class="si">%s</span><span class="s2"> seconds ---&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">diagonals</span><span class="p">,</span> <span class="n">remove_from_mesh</span><span class="p">(</span><span class="n">mesh_core_elec</span><span class="p">,</span> <span class="p">[</span><span class="mi">501</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">1501</span><span class="p">,</span> <span class="mi">1502</span><span class="p">,</span> <span class="mi">2101</span><span class="p">,</span> <span class="mi">2102</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="remove_electrodes_volume_from_skin">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.remove_electrodes_volume_from_skin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_electrodes_volume_from_skin</span><span class="p">(</span><span class="n">electrodes_volume_mesh</span><span class="p">,</span> <span class="n">skin_surf_vol_mesh</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove the volume occupied by electrodes from the skin volume mesh.</span>
+
+<span class="sd">    This function:</span>
+<span class="sd">        - Finds tetrahedra in the skin mesh that contain electrode nodes.</span>
+<span class="sd">        - Deletes those tetrahedra to leave a &quot;hole&quot; where the electrodes are.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    electrodes_volume_mesh : Msh</span>
+<span class="sd">        A Msh object representing the electrode volumes.</span>
+<span class="sd">    skin_surf_vol_mesh : Msh</span>
+<span class="sd">        A Msh object representing the skin volume + surface.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Msh</span>
+<span class="sd">        A new Msh object for the skin mesh with the electrode volumes removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">skin_surf_vol_mesh</span><span class="o">.</span><span class="n">find_tetrahedron_with_points</span><span class="p">(</span><span class="n">electrodes_volume_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span><span class="p">)</span>
+    <span class="n">points_in_skin</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">points_in_skin1</span> <span class="o">=</span> <span class="n">points_in_skin</span><span class="p">[</span><span class="n">points_in_skin</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">points_in_skin2</span> <span class="o">=</span> <span class="n">points_in_skin1</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="n">mesh_skin1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">skin_surf_vol_mesh</span><span class="p">)</span>
+
+    <span class="n">mesh_skin1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">mesh_skin1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span><span class="p">,</span> <span class="n">points_in_skin2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">mesh_skin1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">elm_type</span> <span class="o">=</span> <span class="n">mesh_skin1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">elm_type</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">mesh_skin1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">mesh_skin1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span> <span class="o">=</span> <span class="n">mesh_skin1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">mesh_skin1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">mesh_skin1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">mesh_skin1</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span>
+
+    <span class="n">mesh_skin1</span> <span class="o">=</span> <span class="n">remove_disconnected_nodes</span><span class="p">(</span><span class="n">mesh_skin1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mesh_skin1</span></div>
+
+
+
+<div class="viewcode-block" id="remove_disconnected_nodes">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.remove_disconnected_nodes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_disconnected_nodes</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove any nodes that are not connected to any elements in a mesh.</span>
+
+<span class="sd">    This function:</span>
+
+<span class="sd">    - Identifies nodes with zero adjacency.</span>
+<span class="sd">    - Deletes them from the mesh and updates the element node numbering accordingly.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : Msh</span>
+<span class="sd">        A Msh object to be processed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Msh</span>
+<span class="sd">        The updated Msh object with disconnected nodes removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># find and delete disconnected nodes</span>
+    <span class="n">sparse_matrix</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_elm_adjacency</span><span class="p">()</span>
+    <span class="n">sparse_nodes_mean</span> <span class="o">=</span> <span class="n">sparse_matrix</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">disconected_nodes_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sparse_nodes_mean</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>  <span class="c1"># indices of disconnected nodes</span>
+
+    <span class="n">mesh</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span><span class="p">,</span> <span class="n">disconected_nodes_idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Fix element-node conection</span>
+    <span class="n">node_number_list_flatten</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">node_number_list_flatten_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">node_number_list_flatten</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">disconected_nodes_idx</span><span class="p">)):</span>
+        <span class="n">node_number_list_flatten_copy</span><span class="p">[</span><span class="n">node_number_list_flatten</span> <span class="o">&gt;</span> <span class="n">disconected_nodes_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">-=</span> <span class="mi">1</span>
+
+    <span class="n">node_number_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">node_number_list_flatten_copy</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">node_number_list_flatten</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span> <span class="o">=</span> <span class="n">node_number_list</span>
+
+    <span class="k">return</span> <span class="n">mesh</span></div>
+
+
+
+<div class="viewcode-block" id="find_and_fix_nodes_for_change_new">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.find_and_fix_nodes_for_change_new">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_and_fix_nodes_for_change_new</span><span class="p">(</span><span class="n">mesh_skin_with_holes</span><span class="p">,</span> <span class="n">electrodes_ref</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Align skin mesh nodes to match electrode coordinates within a tolerance.</span>
+
+<span class="sd">    This function:</span>
+
+<span class="sd">    - Creates a KDTree from the electrode node coordinates.</span>
+<span class="sd">    - Finds skin mesh nodes within a certain tolerance to those electrode coordinates.</span>
+<span class="sd">    - Replaces those skin node coordinates with the electrode coordinates, ensuring</span>
+<span class="sd">      alignment between skin and electrode meshes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh_skin_with_holes : Msh</span>
+<span class="sd">        A Msh object for the skin mesh (with holes).</span>
+<span class="sd">    electrodes_ref : Msh</span>
+<span class="sd">        A Msh object whose node coordinates are used as the reference.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Msh</span>
+<span class="sd">        The modified skin mesh with nodes aligned to electrode coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Start&#39;</span><span class="p">)</span>
+    <span class="n">tolerance</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+    <span class="n">elec_nodes</span> <span class="o">=</span> <span class="n">electrodes_ref</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span>
+    <span class="n">nodes_for_change_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">elec_nodes_rounded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">elec_nodes</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">skin_nodes_rounded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">mesh_skin_with_holes</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+    <span class="n">array1</span> <span class="o">=</span> <span class="n">skin_nodes_rounded</span>
+    <span class="n">array2</span> <span class="o">=</span> <span class="n">elec_nodes_rounded</span>
+
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">KDTree</span><span class="p">(</span><span class="n">array2</span><span class="p">)</span>
+    <span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">array1</span><span class="p">,</span> <span class="n">distance_upper_bound</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
+
+    <span class="n">indices1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+    <span class="n">indices1</span><span class="p">[</span><span class="n">distances</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">nodes_for_change_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">indices1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">nodes_for_change_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">nodes_for_change_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># change values of nodes</span>
+        <span class="n">mesh_skin_with_holes</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span><span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="n">electrodes_ref</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finish&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">mesh_skin_with_holes</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="volumes_subtraction">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.volumes_subtraction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">volumes_subtraction</span><span class="p">(</span><span class="n">vol1_name</span><span class="p">,</span> <span class="n">vol2_name</span><span class="p">,</span> <span class="n">output_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Subtract one volumetric mesh from another, fix common geometry issues, and save the result.</span>
+
+<span class="sd">    This function:</span>
+<span class="sd">        - Loads two volumetric meshes from the paths given by &#39;vol1_name&#39; and &#39;vol2_name&#39;.</span>
+<span class="sd">        - Performs a difference operation (A minus B) using mrmeshpy&#39;s Boolean tools.</span>
+<span class="sd">        - Searches for (and logs) degenerate faces and self-intersections in the resulting mesh.</span>
+<span class="sd">        - Attempts to fix self-intersections if any are found.</span>
+<span class="sd">        - Saves the final mesh to &#39;output_name&#39;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vol1_name : str</span>
+<span class="sd">        Path to the first volume/mesh (A).</span>
+<span class="sd">    vol2_name : str</span>
+<span class="sd">        Path to the second volume/mesh (B) to subtract from the first.</span>
+<span class="sd">    output_name : str</span>
+<span class="sd">        Path where the resulting mesh after subtraction is saved.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        The function writes the result to a file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Mesh loading:&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">meshA</span> <span class="o">=</span> <span class="n">mrmeshpy</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">mrmeshpy</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">vol1_name</span><span class="p">))</span>
+        <span class="n">meshB</span> <span class="o">=</span> <span class="n">mrmeshpy</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">mrmeshpy</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">vol2_name</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Done!&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Subtraction:&#39;</span><span class="p">)</span>
+
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">mrmeshpy</span><span class="o">.</span><span class="n">boolean</span><span class="p">(</span><span class="n">meshA</span><span class="p">,</span> <span class="n">meshB</span><span class="p">,</span> <span class="n">mrmeshpy</span><span class="o">.</span><span class="n">BooleanOperation</span><span class="o">.</span><span class="n">DifferenceAB</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Done!&#39;</span><span class="p">)</span>
+
+    <span class="n">diff_mesh</span> <span class="o">=</span> <span class="n">diff</span><span class="o">.</span><span class="n">mesh</span>
+
+    <span class="c1"># Mesh geometry fix</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Mesh geometry fix:&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Degenerate faces fix</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Degenerate faces fix:&quot;</span><span class="p">)</span>
+
+    <span class="n">degenerate_faces_number</span> <span class="o">=</span> <span class="n">mrmeshpy</span><span class="o">.</span><span class="n">findDegenerateFaces</span><span class="p">(</span><span class="n">mrmeshpy</span><span class="o">.</span><span class="n">MeshPart</span><span class="p">(</span><span class="n">diff_mesh</span><span class="p">),</span>
+                                                           <span class="mf">1.000e+04</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>  <span class="c1"># criticalAspectRatio = 1.000e+04 as in the Web MeshInspector</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of degenerate faces = </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">degenerate_faces_number</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># if degenerate_faces_number &gt; 0:</span>
+    <span class="c1">#     decimate_strategy = mrmeshpy.DecimateStrategy(0)    # 0 = MinimizeError, 1 = ShortestEdgeFirst</span>
+    <span class="c1">#     decimate_settings = mrmeshpy.DecimateSettings()     # at the moment default settings seems to be OK</span>
+
+    <span class="c1">#     decimate_settings = mrmeshpy.DecimateSettings()</span>
+    <span class="c1">#     decimate_settings.maxDeletedFaces = 100</span>
+    <span class="c1">#     decimate_settings.maxDeletedVertices = 300</span>
+    <span class="c1">#     decimate_settings.maxEdgeLen = 5</span>
+    <span class="c1">#     decimate_settings.maxError = 0.1</span>
+    <span class="c1">#     decimate_settings.maxTriangleAspectRatio = 1.0e+4</span>
+    <span class="c1">#     decimate_settings.optimizeVertexPos = False</span>
+    <span class="c1">#     decimate_settings.packMesh = False</span>
+    <span class="c1">#     # decimate_settings.region = diff_mesh</span>
+    <span class="c1">#     decimate_settings.stabilizer = 0</span>
+    <span class="c1">#     decimate_settings.strategy = decimate_strategy</span>
+    <span class="c1">#     decimate_settings.touchBdVerts = False</span>
+
+    <span class="c1">#     mrmeshpy.decimateMesh(diff_mesh, settings = decimate_settings)</span>
+    <span class="c1">#     logger.info(&quot;Done!&quot;)</span>
+
+
+    <span class="c1"># Self-intersecting faces fix</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Self-intersecting faces fix:&quot;</span><span class="p">)</span>
+
+    <span class="n">self_intersecting_faces</span> <span class="o">=</span> <span class="n">mrmeshpy</span><span class="o">.</span><span class="n">findSelfCollidingTrianglesBS</span><span class="p">(</span><span class="n">mrmeshpy</span><span class="o">.</span><span class="n">MeshPart</span><span class="p">(</span><span class="n">diff_mesh</span><span class="p">))</span>
+    <span class="n">self_intersecting_faces_number</span> <span class="o">=</span> <span class="n">self_intersecting_faces</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of self-intersecting faces = </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">self_intersecting_faces_number</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">self_intersecting_faces_number</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempting to fix self-intersections&quot;</span><span class="p">)</span>
+        <span class="n">mrmeshpy</span><span class="o">.</span><span class="n">fixSelfIntersections</span><span class="p">(</span><span class="n">diff_mesh</span><span class="p">,</span> <span class="n">voxelSize</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done!&quot;</span><span class="p">)</span>
+
+
+    <span class="c1"># mrmeshpy.fixSelfIntersections(mesh: meshlib.mrmeshpy.Mesh, voxelSize: float)</span>
+    <span class="c1"># mrmeshpy.relax(self_intersecting_faces)</span>
+    <span class="c1"># a = mrmeshpy.MeshRelaxParams()</span>
+    <span class="c1"># a.region = self_intersecting_faces</span>
+
+    <span class="n">mrmeshpy</span><span class="o">.</span><span class="n">saveMesh</span><span class="p">(</span><span class="n">diff_mesh</span><span class="p">,</span> <span class="n">mrmeshpy</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">output_name</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="create_elec_and_iso">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.functions.create_elec_and_iso">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_elec_and_iso</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create electrodes and isolation geometry, refine the skull mesh, and perform volume subtractions.</span>
+
+<span class="sd">    This function performs a multi-step mesh manipulation pipeline to:</span>
+<span class="sd">        1. Create a new output directory for the simulation.</span>
+<span class="sd">        2. Locate and read the original head mesh.</span>
+<span class="sd">        3. Separate the mesh into skin, skull, and the remaining tissues, applying tag changes if needed.</span>
+<span class="sd">        4. Optionally refine the skull mesh if a refined version doesn&#39;t already exist.</span>
+<span class="sd">        5. Calculate electrode positions using &#39;find_corners()&#39;, then place the electrodes with &#39;electrode_placement()&#39;.</span>
+<span class="sd">        6. Compute normals for electrodes and extrude both the electrode surfaces and isolation surfaces in Gmsh.</span>
+<span class="sd">        7. Subtract volumes to remove isolation from the skin and electrodes from the isolation, and re-create volumes in Gmsh.</span>
+<span class="sd">        8. Fix node positions to ensure consistent geometry between adjacent surfaces.</span>
+<span class="sd">        9. Cleanup (delete) intermediate or unnecessary files.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pathlib.Path</span>
+<span class="sd">        A pathlib.Path object corresponding to the newly created output directory</span>
+<span class="sd">        that contains the final meshes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="c1"># Simplified path creation</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">pathfem_modif</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">pathfem</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">pathfem_modif</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pathfem_modif</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">break</span>
+
+    <span class="c1"># manipulate head model if declared in param.py</span>
+    <span class="n">meshname</span> <span class="o">=</span> <span class="n">onamehead</span>
+    <span class="n">original_mesh_path</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">volume_dir</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">volume_path</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">volume_dir</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="n">meshname</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="n">original_mesh_path</span> <span class="o">=</span> <span class="n">path</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="n">meshname</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">original_mesh_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to locate </span><span class="si">{</span><span class="n">meshname</span><span class="si">}</span><span class="s2"> file in data directory </span><span class="si">{</span><span class="n">volume_dir</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to locate </span><span class="si">{</span><span class="n">meshname</span><span class="si">}</span><span class="s2"> file in </span><span class="si">{</span><span class="n">volume_dir</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="n">original_mesh_path</span><span class="p">)</span>
+
+    <span class="c1"># mesh = mesh_tools.read_msh(requirements_path + meshname)</span>
+
+    <span class="c1"># Extract skin surface and skull core</span>
+    <span class="n">mesh_skin_surf</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1005</span><span class="p">])</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracted skin surface&quot;</span><span class="p">)</span>
+
+    <span class="n">mesh_core</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1007</span><span class="p">])</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracted skull surface&quot;</span><span class="p">)</span>
+
+    <span class="n">mesh_without_skull_and_skin</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">remove_from_mesh</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1005</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1007</span><span class="p">])</span>
+    <span class="n">mesh_without_skull_and_skin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;mesh_without_skull_and_skin.msh&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Retag the mesh to adjest the element labels</span>
+    <span class="n">retag</span><span class="p">(</span><span class="n">mesh_core</span><span class="p">,</span> <span class="mi">1007</span><span class="p">,</span> <span class="mi">1005</span><span class="p">)</span>
+    <span class="n">retag</span><span class="p">(</span><span class="n">mesh_core</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1"># Check if we already refined and saved skull using simnibs (decrease read time)</span>
+    <span class="n">mesh_file_path</span> <span class="o">=</span> <span class="n">pathfem_modif</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;skull_surf_refined_</span><span class="si">{</span><span class="n">meshname</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">if</span> <span class="n">mesh_file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">mesh_core</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="n">mesh_file_path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mesh_core</span> <span class="o">=</span> <span class="n">refine</span><span class="p">(</span><span class="n">mesh_core</span><span class="p">,</span> <span class="n">pathfem_modif</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;skull_surf_refined_</span><span class="si">{</span><span class="n">meshname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mesh preparation took </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Electrode placement</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Calculating peripheral electrodes centers...&quot;</span><span class="p">)</span>
+    <span class="n">diagonals</span><span class="p">,</span> <span class="n">mesh_core</span> <span class="o">=</span> <span class="n">find_corners</span><span class="p">(</span><span class="n">mesh_core</span><span class="p">)</span>
+    <span class="n">peripheral_coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">diagonals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">diagonals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">diagonals</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">diagonals</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Peripheral coordinates: </span><span class="si">{</span><span class="n">peripheral_coord</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">S</span><span class="p">,</span> <span class="n">mesh_core_elec</span><span class="p">,</span> <span class="n">elec_surfaces</span> <span class="o">=</span> <span class="n">electrode_placement</span><span class="p">(</span><span class="n">mesh_core</span><span class="p">,</span> <span class="n">pathfem_modif</span><span class="p">,</span> <span class="n">peripheral_coord</span><span class="p">)</span>
+
+    <span class="n">mesh_core_elec</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skull_ref_with_elec_and_isolation.msh&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Calculate normals for electrodes</span>
+    <span class="n">closest_normals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_electrodes</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mesh_elec_n</span> <span class="o">=</span> <span class="n">mesh_core_elec</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">501</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="mi">1501</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="mi">2102</span> <span class="o">+</span> <span class="n">i</span><span class="p">])</span>
+            <span class="n">mesh_elec_outsurf_n</span> <span class="o">=</span> <span class="n">mesh_get_outer_surface</span><span class="p">(</span><span class="n">mesh_elec_n</span><span class="p">,</span> <span class="mi">1003</span><span class="p">)</span>
+
+            <span class="n">closest_point_n</span> <span class="o">=</span> <span class="n">mesh_elec_outsurf_n</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">find_closest_node</span><span class="p">(</span>
+                <span class="n">pos_centre</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">peripheral_coord</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+            <span class="n">all_nodes_normals_n</span> <span class="o">=</span> <span class="n">mesh_elec_outsurf_n</span><span class="o">.</span><span class="n">nodes_normals</span><span class="p">(</span><span class="n">mesh_elec_outsurf_n</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">elm_number</span><span class="p">)</span>
+            <span class="n">closest_normal_n</span> <span class="o">=</span> <span class="n">all_nodes_normals_n</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="n">closest_point_n</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">closest_normal_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">closest_normal_n</span> <span class="k">if</span> <span class="n">closest_normal_n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="n">closest_normal_n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">closest_normals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">closest_normal_n</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to calculate normal for electrode </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+
+    <span class="n">closest_normals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">closest_normals</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Calculated closest normals: </span><span class="si">{</span><span class="n">closest_normals</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># isolation and electrodes extrusion by gmsh</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Isolation extrusion by gmsh&quot;</span><span class="p">)</span>
+
+    <span class="c1"># isolation extrusion</span>
+    <span class="n">isolation_top_surf</span> <span class="o">=</span> <span class="n">mesh_core_elec</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">1506</span><span class="p">])</span>
+    <span class="n">isolation_top_surf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;mesh_isolation_1506.msh&quot;</span><span class="p">))</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;mesh_isolation_1506.msh&quot;</span><span class="p">))</span>
+
+    <span class="n">extrusion_vect</span> <span class="o">=</span> <span class="n">closest_normals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">vector_len</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">closest_normals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">closest_normals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">closest_normals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">total_extrusion_vec_length</span> <span class="o">=</span> <span class="n">h_silicon</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">extrusion_vect</span> <span class="o">=</span> <span class="n">closest_normals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">total_extrusion_vec_length</span> <span class="o">/</span> <span class="n">vector_len</span><span class="p">)</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">extrude</span><span class="p">([(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1506</span><span class="p">)],</span> <span class="n">extrusion_vect</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">extrusion_vect</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">extrusion_vect</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                           <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">total_extrusion_vec_length</span><span class="p">)])</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">addPhysicalGroup</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">506</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_gmsh_extruded_with_surf.msh2&quot;</span><span class="p">))</span>
+
+
+    <span class="n">isolation</span> <span class="o">=</span> <span class="n">msh2_to_simnibs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_gmsh_extruded_with_surf.msh2&quot;</span><span class="p">))</span>
+    <span class="n">isolation</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">isolation</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span>
+    <span class="n">isolation_volume</span> <span class="o">=</span> <span class="n">isolation</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">506</span><span class="p">])</span>
+    <span class="n">isolation_volume</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_gmsh_extruded_vol.msh&quot;</span><span class="p">))</span>
+    <span class="n">isolation_extruded_outsurf</span> <span class="o">=</span> <span class="n">mesh_get_outer_surface</span><span class="p">(</span><span class="n">isolation_volume</span><span class="p">,</span> <span class="mi">1004</span><span class="p">)</span>
+    <span class="n">isolation_extruded_outsurf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_extruded_outsurf.msh&quot;</span><span class="p">))</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_extruded_outsurf.msh&quot;</span><span class="p">))</span>
+    <span class="c1"># gmsh.option.setNumber(&quot;Mesh.Binary&quot;, 0) # ASCII STL format (use 1 for binary STL)</span>
+
+    <span class="c1"># Save the mesh as STL</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_extruded_outsurf.stl&quot;</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># electrodes extrusion</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Electrodes extrusion by gmsh&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_electrodes</span><span class="p">):</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Electrode </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> extrusion by gmsh&quot;</span><span class="p">)</span>
+
+        <span class="n">electrode_top_surf</span> <span class="o">=</span> <span class="n">mesh_core_elec</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">1501</span> <span class="o">+</span> <span class="n">i</span><span class="p">])</span>
+        <span class="n">electrode_top_surf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;mesh_electrode_150</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">.msh&quot;</span><span class="p">))</span>
+
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;mesh_electrode_150</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">.msh&quot;</span><span class="p">))</span>
+
+        <span class="n">extrusion_vect</span> <span class="o">=</span> <span class="n">closest_normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">vector_len</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">closest_normals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">closest_normals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">closest_normals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">total_extrusion_vec_length</span> <span class="o">=</span> <span class="n">h_silicon</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">extrusion_vect</span> <span class="o">=</span> <span class="n">closest_normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">total_extrusion_vec_length</span> <span class="o">/</span> <span class="n">vector_len</span><span class="p">)</span>
+
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">extrude</span><span class="p">([(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1501</span> <span class="o">+</span> <span class="n">i</span><span class="p">)],</span> <span class="n">extrusion_vect</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">extrusion_vect</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">extrusion_vect</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                               <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">total_extrusion_vec_length</span><span class="p">)])</span>
+
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">addPhysicalGroup</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">501</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;electrode_</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="mi">1501</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">_Gmsh_extruded_with_surf.msh2&quot;</span><span class="p">))</span>
+
+        <span class="n">electrode</span> <span class="o">=</span> <span class="n">msh2_to_simnibs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;electrode_</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="mi">1501</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">_Gmsh_extruded_with_surf.msh2&quot;</span><span class="p">))</span>
+        <span class="n">electrode</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">electrode</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span>
+        <span class="n">electrode_volume</span> <span class="o">=</span> <span class="n">electrode</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">501</span> <span class="o">+</span> <span class="n">i</span><span class="p">])</span>
+        <span class="n">electrode_volume</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;electrode_</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="mi">1501</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">_Gmsh_extruded_vol.msh2&quot;</span><span class="p">))</span>
+        <span class="n">electrode_outsurf</span> <span class="o">=</span> <span class="n">mesh_get_outer_surface</span><span class="p">(</span><span class="n">electrode_volume</span><span class="p">,</span> <span class="mi">1501</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">electrode_outsurf</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">electrode_outsurf</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span>
+        <span class="n">electrode_outsurf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;electrode_</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="mi">1501</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">_Gmsh_extruded_outsurf.msh&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">electrodes</span> <span class="o">=</span> <span class="n">electrode_outsurf</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">electrodes</span> <span class="o">=</span> <span class="n">join_and_connect</span><span class="p">(</span><span class="n">electrodes</span><span class="p">,</span> <span class="n">electrode_outsurf</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Done!&#39;</span><span class="p">)</span>
+
+    <span class="n">electrodes</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;electrodes_Gmsh_extruded_outsurf.msh&quot;</span><span class="p">))</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;electrodes_Gmsh_extruded_outsurf.msh&quot;</span><span class="p">))</span>
+    <span class="c1"># gmsh.option.setNumber(&quot;Mesh.Binary&quot;, 0) # 0 for ASCII STL, 1 for binary STL</span>
+
+    <span class="c1"># Save the mesh in STL format</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;electrodes_Gmsh_extruded_outsurf.stl&quot;</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># volumes subtraction</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Volumes subtraction&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skin-isolation subtraction&quot;</span><span class="p">)</span>
+
+    <span class="c1"># skin outsrf creation</span>
+    <span class="n">skin</span> <span class="o">=</span> <span class="n">mesh_skin_surf</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">5</span><span class="p">])</span>
+    <span class="n">skin_outsrf</span> <span class="o">=</span> <span class="n">mesh_get_outer_surface</span><span class="p">(</span><span class="n">skin</span><span class="p">,</span> <span class="mi">1004</span><span class="p">)</span>
+    <span class="n">skin_outsrf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skin_outsrf.msh&quot;</span><span class="p">))</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skin_outsrf.msh&quot;</span><span class="p">))</span>
+    <span class="c1"># gmsh.option.setNumber(&quot;Mesh.Binary&quot;, 0) # 0 for ASCII STL, 1 for binary STL</span>
+
+    <span class="c1"># Save the mesh in STL format</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skin_outsrf.stl&quot;</span><span class="p">))</span>
+
+    <span class="c1"># skin-isolation subtraction</span>
+
+    <span class="c1"># gmsh extruded isolation</span>
+    <span class="n">volumes_subtraction</span><span class="p">(</span>
+        <span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skin_outsrf.stl&quot;</span><span class="p">,</span>
+        <span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_extruded_outsurf.stl&quot;</span><span class="p">,</span>
+        <span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skin_without_Gmsh_isolation.stl&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># skin volume creation</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skin_without_Gmsh_isolation.stl&quot;</span><span class="p">))</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">setSize</span><span class="p">(</span><span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">getEntities</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addSurfaceLoop</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1005</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addVolume</span><span class="p">([</span><span class="mi">1005</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">addPhysicalGroup</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1005</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">addPhysicalGroup</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skin_without_isolation_vol_surf.msh2&quot;</span><span class="p">))</span>
+
+    <span class="n">skin</span> <span class="o">=</span> <span class="n">msh2_to_simnibs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skin_without_isolation_vol_surf.msh2&quot;</span><span class="p">))</span>
+    <span class="n">skin</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">skin</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span>
+    <span class="n">skin_volume</span> <span class="o">=</span> <span class="n">skin</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">5</span><span class="p">])</span>
+    <span class="n">skin_volume</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skin_without_isolation_vol.msh&quot;</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Done!&#39;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Isolation-electrodes subtraction&quot;</span><span class="p">)</span>
+
+    <span class="c1"># isolation outsrf creation</span>
+    <span class="n">isolation</span> <span class="o">=</span> <span class="n">mesh_core_elec</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">506</span><span class="p">])</span>
+    <span class="n">isolation_outsrf</span> <span class="o">=</span> <span class="n">mesh_get_outer_surface</span><span class="p">(</span><span class="n">isolation</span><span class="p">,</span> <span class="mi">1004</span><span class="p">)</span>
+    <span class="n">isolation_outsrf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_outsrf.msh&quot;</span><span class="p">))</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_outsrf.msh&quot;</span><span class="p">))</span>
+    <span class="c1"># gmsh.option.setNumber(&quot;Mesh.Binary&quot;, 0) # 0 for ASCII STL, 1 for binary STL</span>
+
+    <span class="c1"># Save the mesh in STL format</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_outsrf.stl&quot;</span><span class="p">))</span>
+
+    <span class="c1"># isolation-electrodes subtraction</span>
+
+    <span class="c1"># gmsh extruded electrodes</span>
+    <span class="n">volumes_subtraction</span><span class="p">(</span>
+        <span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_outsrf.stl&quot;</span><span class="p">,</span>
+        <span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;electrodes_Gmsh_extruded_outsurf.stl&quot;</span><span class="p">,</span>
+        <span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_without_electrodes.stl&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># isolation volume creation</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_without_electrodes.stl&quot;</span><span class="p">))</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">setSize</span><span class="p">(</span><span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">getEntities</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addSurfaceLoop</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1506</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addVolume</span><span class="p">([</span><span class="mi">1506</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">addPhysicalGroup</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1506</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">addPhysicalGroup</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">506</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_without_electrodes_vol_surf.msh2&quot;</span><span class="p">))</span>
+
+    <span class="n">isolation</span> <span class="o">=</span> <span class="n">msh2_to_simnibs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_without_electrodes_vol_surf.msh2&quot;</span><span class="p">))</span>
+    <span class="n">isolation</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag2</span> <span class="o">=</span> <span class="n">isolation</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span>
+    <span class="n">isolation_volume</span> <span class="o">=</span> <span class="n">isolation</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">506</span><span class="p">])</span>
+    <span class="n">isolation_volume</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_without_electrodes_vol.msh&quot;</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Done!&#39;</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span>
+
+    <span class="c1"># meshes fix</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Meshes fix&quot;</span><span class="p">)</span>
+
+    <span class="c1"># iso fix with electrodes and skull</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Isolation fix with skull and electrodes&quot;</span><span class="p">)</span>
+    <span class="n">iso</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_without_electrodes_vol.msh&quot;</span><span class="p">))</span>
+    <span class="n">skull_and_elec</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">mesh_core_elec</span><span class="p">)</span>
+    <span class="n">skull_and_elec</span> <span class="o">=</span> <span class="n">skull_and_elec</span><span class="o">.</span><span class="n">remove_from_mesh</span><span class="p">([</span><span class="mi">506</span><span class="p">,</span> <span class="mi">1506</span><span class="p">,</span> <span class="mi">2106</span><span class="p">])</span>
+    <span class="n">new_iso</span> <span class="o">=</span> <span class="n">find_and_fix_nodes_for_change_new</span><span class="p">(</span><span class="n">iso</span><span class="p">,</span> <span class="n">skull_and_elec</span><span class="p">)</span>
+    <span class="n">new_iso</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_with_hole_fixed_for_electrodes_and_skull.msh&quot;</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># skin fix with all tissues</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skin fix with all tissues, isolation and electrodes&quot;</span><span class="p">)</span>
+    <span class="n">skin</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skin_without_isolation_vol.msh&quot;</span><span class="p">))</span>
+    <span class="n">mesh_without_skin_and_skull</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;mesh_without_skull_and_skin.msh&quot;</span><span class="p">))</span>
+    <span class="n">skull</span> <span class="o">=</span> <span class="n">mesh_core_elec</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1005</span><span class="p">])</span>
+    <span class="n">retag</span><span class="p">(</span><span class="n">skull</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+    <span class="n">retag</span><span class="p">(</span><span class="n">skull</span><span class="p">,</span> <span class="mi">1005</span><span class="p">,</span> <span class="mi">1007</span><span class="p">)</span>
+    <span class="n">skull</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;skull_from_simulation.msh&quot;</span><span class="p">))</span>
+    <span class="n">isolation</span> <span class="o">=</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">read_msh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;isolation_with_hole_fixed_for_electrodes_and_skull.msh&quot;</span><span class="p">))</span>
+    <span class="n">elec</span> <span class="o">=</span> <span class="n">mesh_core_elec</span><span class="o">.</span><span class="n">crop_mesh</span><span class="p">(</span>
+        <span class="p">[</span><span class="mi">501</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">,</span> <span class="mi">505</span><span class="p">,</span> <span class="mi">1501</span><span class="p">,</span> <span class="mi">1502</span><span class="p">,</span> <span class="mi">1503</span><span class="p">,</span> <span class="mi">1504</span><span class="p">,</span> <span class="mi">1505</span><span class="p">,</span> <span class="mi">2101</span><span class="p">,</span> <span class="mi">2102</span><span class="p">,</span> <span class="mi">2103</span><span class="p">,</span> <span class="mi">2104</span><span class="p">,</span> <span class="mi">2105</span><span class="p">])</span>
+    <span class="n">everything_except_skin</span> <span class="o">=</span> <span class="n">join_and_connect</span><span class="p">(</span><span class="n">mesh_without_skin_and_skull</span><span class="p">,</span> <span class="n">skull</span><span class="p">)</span>
+    <span class="n">everything_except_skin</span> <span class="o">=</span> <span class="n">join_and_connect</span><span class="p">(</span><span class="n">everything_except_skin</span><span class="p">,</span> <span class="n">isolation</span><span class="p">)</span>
+    <span class="n">everything_except_skin</span> <span class="o">=</span> <span class="n">join_and_connect</span><span class="p">(</span><span class="n">everything_except_skin</span><span class="p">,</span> <span class="n">elec</span><span class="p">)</span>
+
+    <span class="n">new_skin</span> <span class="o">=</span> <span class="n">find_and_fix_nodes_for_change_new</span><span class="p">(</span><span class="n">skin</span><span class="p">,</span> <span class="n">everything_except_skin</span><span class="p">)</span>
+    <span class="n">new_skin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pathfem_modif</span> <span class="o">/</span> <span class="s2">&quot;mesh_skin_with_hole_fixed_for_everything.msh&quot;</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># List of files to keep</span>
+    <span class="n">files_to_keep</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;mesh_without_skull_and_skin.msh&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;skull_ref_with_elec_and_isolation.msh&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mesh_skin_with_hole_fixed_for_everything.msh&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;isolation_with_hole_fixed_for_electrodes_and_skull.msh&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">file_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pathfem_modif</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.*&quot;</span><span class="p">))</span>
+    <span class="c1"># Iterate over all files in the directory and remove the ones not in files_to_keep</span>
+    <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">file_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">file_path</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">files_to_keep</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">file_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error while deleting file: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">, Error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;================================================================================&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;DELETING FILES:&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">file_list</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;================================================================================&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Preparation took </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pathfem_modif</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

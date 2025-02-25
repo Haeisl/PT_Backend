@@ -1,0 +1,380 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>remove_post_processing_results &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">remove_post_processing_results</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for remove_post_processing_results</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A utility script to clear or simulate clearing post-processing results from patient and configuration directories.</span>
+
+<span class="sd">Notes</span>
+<span class="sd">-----</span>
+<span class="sd">This script:</span>
+<span class="sd">    - Reads a config.ini file to locate a `process_data` directory within a database structure.</span>
+<span class="sd">    - Identifies and displays patient IDs and associated config IDs.</span>
+<span class="sd">    - Allows the user to selectively remove files/directories under specific patient/config IDs or remove all.</span>
+<span class="sd">    - Supports a dry-run mode to simulate removal without actually deleting files.</span>
+
+<span class="sd">Examples</span>
+<span class="sd">--------</span>
+<span class="sd">  python clear_directory.py --dry-run</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">argparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArgumentParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">configparser</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="c1"># Constants for user confirmation</span>
+<span class="n">YES_RESPONSES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;yes&quot;</span><span class="p">}</span>
+
+<span class="c1"># Constants for paths</span>
+<span class="n">DATABASE_SUBPATH</span> <span class="o">=</span> <span class="s2">&quot;database&quot;</span>
+<span class="n">PROCESS_DATA_SUBPATH</span> <span class="o">=</span> <span class="s2">&quot;process_data&quot;</span>
+
+<span class="c1"># File paths</span>
+<span class="n">CONFIG_FILE</span> <span class="o">=</span> <span class="s2">&quot;config.ini&quot;</span>
+<span class="n">CONFIG_SECTION</span> <span class="o">=</span> <span class="s2">&quot;Settings&quot;</span>
+<span class="n">CONFIG_OPTION</span> <span class="o">=</span> <span class="s2">&quot;data_dir&quot;</span>
+
+
+<div class="viewcode-block" id="parse_arguments">
+<a class="viewcode-back" href="../remove_post_processing_results.html#remove_post_processing_results.parse_arguments">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_arguments</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse command-line arguments.</span>
+
+<span class="sd">    Supported arguments:</span>
+<span class="sd">      --dry-run: If specified, file removal will only be printed rather than performed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    argparse.Namespace</span>
+<span class="sd">        An object with the parsed arguments (dry_run: bool).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Clear directories based on user selection.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--dry-run&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print operations without performing them.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_process_data_directory_path">
+<a class="viewcode-back" href="../remove_post_processing_results.html#remove_post_processing_results.get_process_data_directory_path">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_process_data_directory_path</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the path to the &#39;process_data&#39; directory from config.ini.</span>
+
+<span class="sd">    The config.ini file is expected to have a [Settings] section with a &#39;data_dir&#39; option.</span>
+<span class="sd">    The final path is data_dir/database/process_data.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Path</span>
+<span class="sd">        A Path object pointing to the &#39;process_data&#39; directory.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    SystemExit</span>
+<span class="sd">        If the config file is missing or the specified path does not exist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">CONFIG_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: &#39;</span><span class="si">{</span><span class="n">CONFIG_FILE</span><span class="si">}</span><span class="s2">&#39; file is missing.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Read the config file</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">CONFIG_FILE</span><span class="p">)</span>
+
+    <span class="c1"># Retrieve the path as a string</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data_dir_string</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CONFIG_SECTION</span><span class="p">,</span> <span class="n">CONFIG_OPTION</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error reading </span><span class="si">{</span><span class="n">CONFIG_FILE</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Convert the string to a Path object</span>
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_dir_string</span><span class="p">)</span>
+
+    <span class="c1"># Check whether the path is valid</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">data_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Specified path in &#39;</span><span class="si">{</span><span class="n">CONFIG_FILE</span><span class="si">}</span><span class="s2">&#39; (</span><span class="si">{</span><span class="n">data_dir_string</span><span class="si">}</span><span class="s2">) does not exist.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Navigate to data_dir/database/process_data</span>
+    <span class="n">process_data</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="n">DATABASE_SUBPATH</span> <span class="o">/</span> <span class="n">PROCESS_DATA_SUBPATH</span>
+
+    <span class="c1"># Check if that path exists</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">process_data</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No &#39;</span><span class="si">{</span><span class="n">PROCESS_DATA_SUBPATH</span><span class="si">}</span><span class="s2">&#39; directory found at </span><span class="si">{</span><span class="n">process_data</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">process_data</span></div>
+
+
+
+<div class="viewcode-block" id="get_all_patient_ids_and_configs">
+<a class="viewcode-back" href="../remove_post_processing_results.html#remove_post_processing_results.get_all_patient_ids_and_configs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_all_patient_ids_and_configs</span><span class="p">(</span><span class="n">process_data</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify available patient IDs and config IDs under the &#39;process_data&#39; directory.</span>
+
+<span class="sd">    This function inspects the subdirectories of `process_data`, assuming each subdirectory name</span>
+<span class="sd">    is a patient ID, and each subdirectory under that is a config ID.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    process_data : Path</span>
+<span class="sd">        A Path object pointing to the &#39;process_data&#39; directory.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        A dict mapping patient IDs (keys) to lists of config IDs (values).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># The names of the subdirectories of &#39;process_data&#39; are the patient IDs</span>
+    <span class="c1"># The names of the subdirectories of the patient ID directories are the config IDs</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">subdir</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="p">[</span><span class="n">sub</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subdir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span> <span class="k">if</span> <span class="n">sub</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
+        <span class="k">for</span> <span class="n">subdir</span> <span class="ow">in</span> <span class="n">process_data</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span> <span class="k">if</span> <span class="n">subdir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="clear_directory">
+<a class="viewcode-back" href="../remove_post_processing_results.html#remove_post_processing_results.clear_directory">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">clear_directory</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively remove files and directories under a given path.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : Path</span>
+<span class="sd">        The top-level directory to be cleared.</span>
+<span class="sd">    dry_run : bool, optional</span>
+<span class="sd">        If True, prints the items that would be deleted without actually deleting them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="c1"># Recursively remove the directory</span>
+                <span class="n">clear_directory</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">dry_run</span><span class="p">:</span>
+                    <span class="n">item</span><span class="o">.</span><span class="n">rmdir</span><span class="p">()</span> <span class="c1"># Remove the now empty directory</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">dry_run</span><span class="p">:</span>
+                    <span class="n">item</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span> <span class="c1"># Remove the file</span>
+            <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Would delete: </span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error deleting </span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="user_clear_directory">
+<a class="viewcode-back" href="../remove_post_processing_results.html#remove_post_processing_results.user_clear_directory">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">user_clear_directory</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prompt user for confirmation before clearing a directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : Path</span>
+<span class="sd">        The directory to clear.</span>
+<span class="sd">    dry_run : bool, optional</span>
+<span class="sd">        If True, simulate deletion rather than actually removing files.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    SystemExit</span>
+<span class="sd">        If the user declines to proceed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="s2">&quot;Would remove&quot;</span> <span class="k">if</span> <span class="n">dry_run</span> <span class="k">else</span> <span class="s2">&quot;About to remove&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s2"> everything in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="n">final_choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Proceed? Yes/No: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">final_choice</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">YES_RESPONSES</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Deleting...&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">dry_run</span> <span class="k">else</span> <span class="s2">&quot;Simulating deletion...&quot;</span><span class="p">)</span>
+        <span class="n">clear_directory</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Aborting.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../remove_post_processing_results.html#remove_post_processing_results.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main entry point to prompt for and execute (or simulate) directory clearing tasks.</span>
+
+<span class="sd">    **Workflow:**</span>
+
+<span class="sd">        1. Parse arguments for a possible dry-run.</span>
+<span class="sd">        2. Confirm user intent to remove post-processing results.</span>
+<span class="sd">        3. Determine the &#39;process_data&#39; directory from the config file.</span>
+<span class="sd">        4. Enumerate patient IDs and config IDs.</span>
+<span class="sd">        5. Prompt user for selection to remove:</span>
+
+<span class="sd">            - a specific patient/config pair,</span>
+<span class="sd">            - all configs under a patient,</span>
+<span class="sd">            - or all data under &#39;process_data&#39;.</span>
+
+<span class="sd">        6. Perform or simulate the removal based on user choice.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_arguments</span><span class="p">()</span>
+    <span class="n">dry_run</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">dry_run</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;You are about to irreversibly remove post-processing results.&quot;</span><span class="p">)</span>
+    <span class="n">cont_choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Continue? Yes/No: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">cont_choice</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">YES_RESPONSES</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Aborting.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">process_data</span> <span class="o">=</span> <span class="n">get_process_data_directory_path</span><span class="p">()</span>
+
+    <span class="n">patient_id_config_dict</span> <span class="o">=</span> <span class="n">get_all_patient_ids_and_configs</span><span class="p">(</span><span class="n">process_data</span><span class="p">)</span>
+
+    <span class="c1"># Print all Patient IDs and associated config IDs</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">These patient and config IDs have been found:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">patient_id</span><span class="p">,</span> <span class="n">config_ids</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">patient_id_config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">patient_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">config_id</span> <span class="ow">in</span> <span class="n">config_ids</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">config_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">You can:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;- Enter a pair like &#39;Patient123, Config123&#39; without quotes to select a specific pair for removal&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;- Enter a patient ID like &#39;Patient123&#39; without quotes to select all configs for the specified patient for removal&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;- Type &#39;all&#39; to select everything&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;- Anything else to abort&quot;</span><span class="p">)</span>
+
+    <span class="n">removal_choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Remove: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">removal_choice</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">process_data</span>
+        <span class="n">user_clear_directory</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">removal_choice</span><span class="p">:</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">removal_choice</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">parts</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid input format. Use &#39;Patient123, Config123&#39;.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">patient_id</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">config_id</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">patient_id</span> <span class="ow">in</span> <span class="n">patient_id_config_dict</span> <span class="ow">and</span> <span class="n">config_id</span> <span class="ow">in</span> <span class="n">patient_id_config_dict</span><span class="p">[</span><span class="n">patient_id</span><span class="p">]:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">process_data</span> <span class="o">/</span> <span class="n">patient_id</span> <span class="o">/</span> <span class="n">config_id</span>
+            <span class="n">user_clear_directory</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid pair. Aborting process.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">removal_choice</span> <span class="ow">in</span> <span class="n">patient_id_config_dict</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">process_data</span> <span class="o">/</span> <span class="n">removal_choice</span>
+        <span class="n">user_clear_directory</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Aborting.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done!&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

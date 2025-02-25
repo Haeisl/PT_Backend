@@ -1,0 +1,570 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>process_simulations.process_roi_functions &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">process_simulations.process_roi_functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for process_simulations.process_roi_functions</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module processes regions of interest (ROI) within 3D simulation data.</span>
+<span class="sd">It includes functions to check if vertices are inside a cube, filter data based on value counts,</span>
+<span class="sd">and map data to specific ROIs.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+<span class="sd">    - is_inside_cube : Check if a vertex is inside the cube defined by cube vertices.</span>
+<span class="sd">    - get_vertices_inside_cube : Get the indices of the vertices that are inside the cube.</span>
+<span class="sd">    - load_data_from_json : Load data from a JSON file.</span>
+<span class="sd">    - get_tetras_per_vertex_in_roi : Get the tetrahedra per vertex that are inside the ROI.</span>
+<span class="sd">    - get_unique_tetras_in_roi : Get unique tetrahedra in the ROI.</span>
+<span class="sd">    - get_indices_per_tag_in_roi : Get indices per tag in the ROI.</span>
+<span class="sd">    - filter_dict_by_value_count : Filter a dictionary by the count of values.</span>
+<span class="sd">    - create_roi_mask : Create a mask for the region of interest (ROI).</span>
+<span class="sd">    - extract_values : Extract values from the electrode dictionary based on ROI indices and store them in the extracted dictionary.</span>
+<span class="sd">    - map_data_to_roi : Map simulation data to a region of interest (ROI) and create a JSON file with the mapped data.</span>
+<span class="sd">    - build_vertex_tag_index_structure : Build a vertex tag index structure for the region of interest (ROI).</span>
+
+<span class="sd">Dependencies</span>
+<span class="sd">------------</span>
+<span class="sd">    - json : For reading and writing JSON files.</span>
+<span class="sd">    - os : For file and directory operations.</span>
+<span class="sd">    - zlib : For compressing data.</span>
+<span class="sd">    - collections.Counter : For counting occurrences of values.</span>
+<span class="sd">    - numpy : For numerical operations and statistics.</span>
+<span class="sd">    - database_params : Custom module for database parameters and paths.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">Delaunay</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">utils</span>
+
+
+<div class="viewcode-block" id="is_cuboid">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_roi_functions.is_cuboid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_cuboid</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if eight points form a rectangular cuboid.&quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+    <span class="c1"># Check for uniqueness</span>
+    <span class="n">unique_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_points</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">8</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Points are not unique.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="c1"># Implement more tests as needed.</span>
+    <span class="c1"># Probably not needed, as ROI can&#39;t be anything else than a cuboid because it&#39;s defined as such in the frontend</span>
+
+
+<div class="viewcode-block" id="get_vertices_inside_cube">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_roi_functions.get_vertices_inside_cube">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_vertices_inside_cube</span><span class="p">(</span><span class="n">vertices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">cube_vertices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the indices of the vertices that are inside the cube.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vertices : numpy.ndarray</span>
+<span class="sd">        A 2D numpy array where each row represents a vertex in the mesh.</span>
+<span class="sd">    cube_vertices : numpy.ndarray</span>
+<span class="sd">        A 2D numpy array where each row represents a vertex of the cube.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        A list of indices of the vertices that are inside the cube.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_cuboid</span><span class="p">(</span><span class="n">cube_vertices</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cube vertices do not form a valid cuboid.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create a Delaunay triangulation of the cuboid vertices</span>
+    <span class="n">delaunay</span> <span class="o">=</span> <span class="n">Delaunay</span><span class="p">(</span><span class="n">cube_vertices</span><span class="p">)</span>
+
+    <span class="n">vertices_inside_cube</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">vertex</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vertices</span><span class="p">):</span>
+        <span class="c1"># Find the simplex that contains the point</span>
+        <span class="n">simplex</span> <span class="o">=</span> <span class="n">delaunay</span><span class="o">.</span><span class="n">find_simplex</span><span class="p">(</span><span class="n">vertex</span><span class="p">)</span>
+        <span class="c1"># simplex &gt;= 0 means the point is inside the cuboid</span>
+        <span class="k">if</span> <span class="n">simplex</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">vertices_inside_cube</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>  <span class="c1"># Store the index of the vertex</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">vertices_inside_cube</span><span class="p">)</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vertices_inside_cube</span></div>
+
+
+
+<div class="viewcode-block" id="get_tetras_per_vertex_in_roi">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_roi_functions.get_tetras_per_vertex_in_roi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_tetras_per_vertex_in_roi</span><span class="p">(</span><span class="n">tetras_per_vertex</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">vertices_in_roi</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the tetrahedra per vertex that are inside the ROI.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tetras_per_vertex : dict</span>
+<span class="sd">        Dictionary of tetrahedra per vertex.</span>
+<span class="sd">    vertices_in_roi : list</span>
+<span class="sd">        List of vertices inside the ROI.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary of tetrahedra per vertex inside the ROI.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unique_vertices_in_roi</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">vertices_in_roi</span><span class="p">}</span>
+    <span class="n">tetras_per_vertex_in_roi</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tetras_per_vertex</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">unique_vertices_in_roi</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">tetras_per_vertex_in_roi</span></div>
+
+
+
+<div class="viewcode-block" id="get_unique_tetras_in_roi">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_roi_functions.get_unique_tetras_in_roi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_unique_tetras_in_roi</span><span class="p">(</span><span class="n">tetras_per_vertex_in_roi</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get unique tetrahedra in the ROI.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tetras_per_vertex_in_roi : dict</span>
+<span class="sd">        Dictionary of tetrahedra per vertex inside the ROI.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray</span>
+<span class="sd">        Array of unique tetrahedra in the ROI.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unique_tetras</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">tetras_per_vertex_in_roi</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">unique_tetras</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">unique_tetras</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_indices_per_tag_in_roi">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_roi_functions.get_indices_per_tag_in_roi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_indices_per_tag_in_roi</span><span class="p">(</span><span class="n">_unique_tetras</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">_cell_id_per_tag</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get indices per tag in the ROI.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _unique_tetras : numpy.ndarray</span>
+<span class="sd">        Array of unique tetrahedra in the ROI.</span>
+<span class="sd">    _cell_id_per_tag : dict</span>
+<span class="sd">        Dictionary of cell IDs per tag.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary of indices per tag in the ROI.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Initialize the result dictionary</span>
+    <span class="n">_indices_per_tag_in_roi</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Iterate over tags and their associated indices</span>
+    <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">indices</span> <span class="ow">in</span> <span class="n">_cell_id_per_tag</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>  <span class="c1"># {&quot;2&quot;: [2, 1, 0], &quot;1&quot;: [3], &quot;3&quot;: [5, 4]}</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">_unique_tetras</span><span class="p">:</span>
+                <span class="n">actual_index</span> <span class="o">=</span> <span class="n">indices</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+                <span class="n">_indices_per_tag_in_roi</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">actual_index</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_indices_per_tag_in_roi</span></div>
+
+
+
+<div class="viewcode-block" id="filter_dict_by_value_count">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_roi_functions.filter_dict_by_value_count">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">filter_dict_by_value_count</span><span class="p">(</span><span class="n">dictionary</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filter a dictionary by the count of values.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dictionary : dict</span>
+<span class="sd">        Dictionary to filter. Each value is expected to be a list of lists.</span>
+<span class="sd">    count : int</span>
+<span class="sd">        Minimum count of occurrences for each value.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Filtered dictionary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_values</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_list</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">_values</span> <span class="ow">in</span> <span class="n">_list</span><span class="p">:</span>
+            <span class="n">all_values</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">value_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">all_values</span><span class="p">)</span>
+    <span class="n">filtered_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">_list</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Filter based on the count condition</span>
+        <span class="k">for</span> <span class="n">_value</span> <span class="ow">in</span> <span class="n">_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">value_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">count</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">_value</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">filtered_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_value</span>
+
+    <span class="k">return</span> <span class="n">filtered_dict</span></div>
+
+
+
+<div class="viewcode-block" id="create_roi_mask">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_roi_functions.create_roi_mask">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_roi_mask</span><span class="p">(</span><span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_roi_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a mask for the region of interest (ROI).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        Configuration ID.</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        Patient ID.</span>
+<span class="sd">    _roi_id : str</span>
+<span class="sd">        ROI ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span>
+    <span class="n">path_roi</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="n">_roi_id</span>
+    <span class="n">path_roi</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading vertices...&quot;</span><span class="p">)</span>
+    <span class="n">geometry_data</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_3d_data.json&quot;</span><span class="p">)</span>
+    <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">geometry_data</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">])</span>
+    <span class="n">meshes</span> <span class="o">=</span> <span class="n">geometry_data</span><span class="p">[</span><span class="s2">&quot;meshes&quot;</span><span class="p">]</span>
+    <span class="n">volumes_raw</span> <span class="o">=</span> <span class="n">geometry_data</span><span class="p">[</span><span class="s2">&quot;volumes_raw&quot;</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading roi_bounds...&quot;</span><span class="p">)</span>
+    <span class="n">roi_bounds_dict</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;roi&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_roi_bounds.json&quot;</span><span class="p">)</span>
+    <span class="n">roi_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">roi_bounds_dict</span><span class="p">[</span><span class="s2">&quot;Bounds&quot;</span><span class="p">])</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing vertex_indices_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">vertex_indices_in_roi</span> <span class="o">=</span> <span class="n">get_vertices_inside_cube</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">roi_bounds</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving vertex_indices_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">vertex_indices_in_roi</span><span class="p">,</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_vertex_indices_in_roi.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading tetras_per_vertex ...&quot;</span><span class="p">)</span>
+    <span class="n">tetra_per_vertex</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_tetras_per_vertex.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing tetras_per_vertex_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">tetras_per_vertex_in_roi</span> <span class="o">=</span> <span class="n">get_tetras_per_vertex_in_roi</span><span class="p">(</span><span class="n">tetra_per_vertex</span><span class="p">,</span> <span class="n">vertex_indices_in_roi</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Filtering tetras_per_vertex_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="c1"># Only where all vertices are inside the cube</span>
+    <span class="n">tetras_per_vertex_in_roi</span> <span class="o">=</span> <span class="n">filter_dict_by_value_count</span><span class="p">(</span><span class="n">tetras_per_vertex_in_roi</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving tetras_per_vertex_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">tetras_per_vertex_in_roi</span><span class="p">,</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_tetras_per_vertex_in_roi.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading triangles_per_vertex ...&quot;</span><span class="p">)</span>
+    <span class="n">triangles_per_vertex</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_triangles_per_vertex.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing triangles_per_vertex_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">triangles_per_vertex_in_roi</span> <span class="o">=</span> <span class="n">get_tetras_per_vertex_in_roi</span><span class="p">(</span><span class="n">triangles_per_vertex</span><span class="p">,</span> <span class="n">vertex_indices_in_roi</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Filtering triangles_per_vertex_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="c1"># Only where all vertices are inside the cube</span>
+    <span class="n">triangles_per_vertex_in_roi</span> <span class="o">=</span> <span class="n">filter_dict_by_value_count</span><span class="p">(</span><span class="n">triangles_per_vertex_in_roi</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving triangles_per_vertex_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">triangles_per_vertex_in_roi</span><span class="p">,</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_triangles_per_vertex_in_roi.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing unique_tetras_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">unique_tetras_in_roi</span> <span class="o">=</span> <span class="n">get_unique_tetras_in_roi</span><span class="p">(</span><span class="n">tetras_per_vertex_in_roi</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving unique_tetras_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">unique_tetras_in_roi</span><span class="p">,</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_unique_tetras_in_roi.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing unique_triangles_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">unique_triangles_in_roi</span> <span class="o">=</span> <span class="n">get_unique_tetras_in_roi</span><span class="p">(</span><span class="n">triangles_per_vertex_in_roi</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving unique_triangles_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">unique_triangles_in_roi</span><span class="p">,</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_unique_triangles_in_roi.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading cell_index_dict ...&quot;</span><span class="p">)</span>
+    <span class="n">cell_index_dict</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_cell_index_dict.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing indices_per_tag_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">indices_per_tag_in_roi</span> <span class="o">=</span> <span class="n">get_indices_per_tag_in_roi</span><span class="p">(</span><span class="n">unique_tetras_in_roi</span><span class="p">,</span> <span class="n">cell_index_dict</span><span class="p">)</span>
+    <span class="n">indices_per_tag_in_roi</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">get_indices_per_tag_in_roi</span><span class="p">(</span><span class="n">unique_triangles_in_roi</span><span class="p">,</span> <span class="n">cell_index_dict</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving indices_per_tag_in_roi ...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">indices_per_tag_in_roi</span><span class="p">,</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_indices_per_tag_in_roi.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing volume_vertex_tag_index_mapping ...&quot;</span><span class="p">)</span>
+    <span class="n">volume_vertex_tag_index_mapping</span> <span class="o">=</span> <span class="n">build_vertex_tag_index_structure</span><span class="p">(</span><span class="n">volumes_raw</span><span class="p">,</span> <span class="n">indices_per_tag_in_roi</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;============================ Volume ============================&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">volume_vertex_tag_index_mapping</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;================================================================&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving volume_vertex_tag_index_mapping ...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">volume_vertex_tag_index_mapping</span><span class="p">,</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_volume_vertex_tag_index_mapping.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing mesh_vertex_tag_index_mapping ...&quot;</span><span class="p">)</span>
+    <span class="n">mesh_vertex_tag_index_mapping</span> <span class="o">=</span> <span class="n">build_vertex_tag_index_structure</span><span class="p">(</span><span class="n">meshes</span><span class="p">,</span> <span class="n">indices_per_tag_in_roi</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;============================ Mesh ============================&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mesh_vertex_tag_index_mapping</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;==============================================================&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving mesh_vertex_tag_index_mapping ...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">mesh_vertex_tag_index_mapping</span><span class="p">,</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_mesh_vertex_tag_index_mapping.json&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="extract_values">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_roi_functions.extract_values">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_values</span><span class="p">(</span><span class="n">electrode_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">roi_indices_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">extracted_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract values from the electrode dictionary based on ROI indices and store them in the extracted dictionary.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    electrode_dict : dict</span>
+<span class="sd">        Dictionary containing electrode data.</span>
+<span class="sd">    roi_indices_dict : dict</span>
+<span class="sd">        Dictionary containing indices of the region of interest (ROI).</span>
+<span class="sd">    extracted_dict : dict</span>
+<span class="sd">        Dictionary to store the extracted values.</span>
+<span class="sd">    key : str</span>
+<span class="sd">        Key to identify the data type (e.g., &quot;Magnitude&quot; or &quot;Vectorfield&quot;).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">tag_key</span><span class="p">,</span> <span class="n">tag_values</span> <span class="ow">in</span> <span class="n">electrode_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">current_indices_arr</span> <span class="o">=</span> <span class="n">roi_indices_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tag_key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">current_indices_arr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Ensure that the key exists in the dictionary</span>
+            <span class="c1"># Extract values based on the ROI indices</span>
+            <span class="n">extracted_dict</span><span class="p">[</span><span class="n">tag_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">current_indices_arr</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">extracted_dict</span><span class="p">[</span><span class="n">tag_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span></div>
+
+
+
+<div class="viewcode-block" id="map_data_to_roi">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_roi_functions.map_data_to_roi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">map_data_to_roi</span><span class="p">(</span><span class="n">_config_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_roi_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Map simulation data to a region of interest (ROI) and create a JSON file with the mapped data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _config_id : str</span>
+<span class="sd">        Configuration ID.</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        Patient ID.</span>
+<span class="sd">    _roi_id : str</span>
+<span class="sd">        ROI ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_config_id</span>
+    <span class="n">path_roi</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="n">_roi_id</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading data ...&quot;</span><span class="p">)</span>
+    <span class="n">data_file_path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_data.json&quot;</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">data_file_path</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading roi_indices ...&quot;</span><span class="p">)</span>
+    <span class="n">roi_indices_path</span> <span class="o">=</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_indices_per_tag_in_roi.json&quot;</span>
+    <span class="n">roi_indices_dict</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">roi_indices_path</span><span class="p">)</span>
+
+    <span class="c1"># Create new dictionaries to store the extracted data</span>
+    <span class="n">merge_data_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extracting data ...&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">electrode_dict</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;Electrodes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">extracted_field_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">extracted_magn_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Extract magnitude and vector field data based on ROI indices</span>
+        <span class="n">extract_values</span><span class="p">(</span><span class="n">electrode_dict</span><span class="p">,</span> <span class="n">roi_indices_dict</span><span class="p">,</span> <span class="n">extracted_magn_dict</span><span class="p">,</span> <span class="s2">&quot;Magnitude&quot;</span><span class="p">)</span>
+        <span class="n">extract_values</span><span class="p">(</span><span class="n">electrode_dict</span><span class="p">,</span> <span class="n">roi_indices_dict</span><span class="p">,</span> <span class="n">extracted_field_dict</span><span class="p">,</span> <span class="s2">&quot;Vectorfield&quot;</span><span class="p">)</span>
+
+        <span class="n">merge_data_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Vectorfield&quot;</span><span class="p">:</span> <span class="n">extracted_field_dict</span><span class="p">,</span> <span class="s2">&quot;Magnitude&quot;</span><span class="p">:</span> <span class="n">extracted_magn_dict</span><span class="p">})</span>
+
+    <span class="n">roi_data_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">roi_data_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;Electrodes&quot;</span><span class="p">,</span> <span class="n">merge_data_dict</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding Index Mapping ...&quot;</span><span class="p">)</span>
+    <span class="n">roi_data_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;Index_Mapping&quot;</span><span class="p">,</span> <span class="n">roi_indices_dict</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding Tag Length ...&quot;</span><span class="p">)</span>
+    <span class="n">tag_length_dict</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_config_id</span><span class="si">}</span><span class="s2">_tag_length_dict.json&quot;</span><span class="p">)</span>
+    <span class="n">roi_data_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;Tag_Length&quot;</span><span class="p">,</span> <span class="n">tag_length_dict</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding Vertex Tag Index Mapping ...&quot;</span><span class="p">)</span>
+    <span class="n">volume_vertex_tag_index_mapping</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_volume_vertex_tag_index_mapping.json&quot;</span><span class="p">)</span>
+    <span class="n">roi_data_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;Volume_Vertex_Tag_Mapping&quot;</span><span class="p">,</span> <span class="n">volume_vertex_tag_index_mapping</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding Mesh Tag Index Mapping ...&quot;</span><span class="p">)</span>
+    <span class="n">mesh_vertex_tag_index_mapping</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_mesh_vertex_tag_index_mapping.json&quot;</span><span class="p">)</span>
+    <span class="n">roi_data_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;Mesh_Vertex_Tag_Mapping&quot;</span><span class="p">,</span> <span class="n">mesh_vertex_tag_index_mapping</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating JSON ...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">roi_data_dict</span><span class="p">,</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_roi_data.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compressing JSON ...&quot;</span><span class="p">)</span>
+    <span class="c1"># Compress JSON data with zlib</span>
+    <span class="n">compressed_data</span> <span class="o">=</span> <span class="n">zlib</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">roi_data_dict</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="c1"># Save compressed data to a file</span>
+    <span class="n">compressed_file</span> <span class="o">=</span> <span class="n">path_roi</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_roi_id</span><span class="si">}</span><span class="s2">_compressed_roi_data.zlib&quot;</span>
+    <span class="n">compressed_file</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="build_vertex_tag_index_structure">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_roi_functions.build_vertex_tag_index_structure">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_vertex_tag_index_structure</span><span class="p">(</span><span class="n">_vertex_indices_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">_indices_per_tag_in_roi</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">bIsTetra</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build a vertex tag index structure for the region of interest (ROI).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _vertex_indices_data : dict</span>
+<span class="sd">        Dictionary containing vertex indices data.</span>
+<span class="sd">    _indices_per_tag_in_roi : dict</span>
+<span class="sd">        Dictionary containing indices per tag in the ROI.</span>
+<span class="sd">    bIsTetra : bool, optional</span>
+<span class="sd">        Flag indicating if the data is for tetrahedra (default is True).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Vertex tag index structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Initialize the final data structure</span>
+    <span class="n">_vertex_tag_index_structure</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Define valid tags based on whether the data is for tetrahedra or not</span>
+    <span class="k">if</span> <span class="n">bIsTetra</span><span class="p">:</span>
+        <span class="n">valid_tags</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span> <span class="s2">&quot;9&quot;</span><span class="p">,</span> <span class="s2">&quot;10&quot;</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">valid_tags</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1001&quot;</span><span class="p">,</span> <span class="s2">&quot;1002&quot;</span><span class="p">,</span> <span class="s2">&quot;1003&quot;</span><span class="p">,</span> <span class="s2">&quot;1006&quot;</span><span class="p">,</span> <span class="s2">&quot;1008&quot;</span><span class="p">,</span> <span class="s2">&quot;1009&quot;</span><span class="p">,</span> <span class="s2">&quot;1010&quot;</span><span class="p">}</span>
+
+    <span class="c1"># Iterate over the indices per tag in the ROI</span>
+    <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">indices</span> <span class="ow">in</span> <span class="n">_indices_per_tag_in_roi</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Skip tags that are not valid</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_tags</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Retrieve cells based on the indices</span>
+        <span class="n">cells</span> <span class="o">=</span> <span class="p">[</span><span class="n">_vertex_indices_data</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
+
+        <span class="c1"># Process each cell and its corresponding index</span>
+        <span class="k">for</span> <span class="n">cell</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">vertex_index</span> <span class="ow">in</span> <span class="n">cell</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">vertex_index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_vertex_tag_index_structure</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">_vertex_tag_index_structure</span><span class="p">[</span><span class="n">vertex_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">if</span> <span class="n">tag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_vertex_tag_index_structure</span><span class="p">[</span><span class="n">vertex_index</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">_vertex_tag_index_structure</span><span class="p">[</span><span class="n">vertex_index</span><span class="p">][</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">_vertex_tag_index_structure</span><span class="p">[</span><span class="n">vertex_index</span><span class="p">][</span><span class="n">tag</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_vertex_tag_index_structure</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

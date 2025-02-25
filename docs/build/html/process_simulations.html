@@ -1,0 +1,1011 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>process_simulations package &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="utils package" href="utils.html" />
+    <link rel="prev" title="Docker_Sim package" href="Docker_Sim.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">PlanningTool_Backend</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Docker_Sim.html">Docker_Sim package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">process_simulations package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-process_simulations.process_3d_functions">process_3d_functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_3d_functions.create_3d_data"><code class="docutils literal notranslate"><span class="pre">create_3d_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_3d_functions.create_tag_based_dictionary_for_volumes"><code class="docutils literal notranslate"><span class="pre">create_tag_based_dictionary_for_volumes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_3d_functions.create_tag_to_new_index_mapping"><code class="docutils literal notranslate"><span class="pre">create_tag_to_new_index_mapping()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_3d_functions.map_geometry_to_vertex"><code class="docutils literal notranslate"><span class="pre">map_geometry_to_vertex()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-process_simulations.process_data_functions">process_data_functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_data_functions.convert_data_to_json"><code class="docutils literal notranslate"><span class="pre">convert_data_to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_data_functions.create_one_json_data_file"><code class="docutils literal notranslate"><span class="pre">create_one_json_data_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-process_simulations.process_helper_functions">process_helper_functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_helper_functions.create_tag_based_dictionary"><code class="docutils literal notranslate"><span class="pre">create_tag_based_dictionary()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_helper_functions.create_tag_look_up_table"><code class="docutils literal notranslate"><span class="pre">create_tag_look_up_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_helper_functions.create_tag_look_up_table_default"><code class="docutils literal notranslate"><span class="pre">create_tag_look_up_table_default()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_helper_functions.custom_switch"><code class="docutils literal notranslate"><span class="pre">custom_switch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_helper_functions.custom_switch_default"><code class="docutils literal notranslate"><span class="pre">custom_switch_default()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_helper_functions.is_valid_tag"><code class="docutils literal notranslate"><span class="pre">is_valid_tag()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-process_simulations.process_original_mesh">process_original_mesh</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id5">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id6">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_original_mesh.convert_mesh_to_json"><code class="docutils literal notranslate"><span class="pre">convert_mesh_to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_original_mesh.create_tag_based_dictionary"><code class="docutils literal notranslate"><span class="pre">create_tag_based_dictionary()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-process_simulations.process_roi_functions">process_roi_functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id7">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id8">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_roi_functions.build_vertex_tag_index_structure"><code class="docutils literal notranslate"><span class="pre">build_vertex_tag_index_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_roi_functions.create_roi_mask"><code class="docutils literal notranslate"><span class="pre">create_roi_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_roi_functions.extract_values"><code class="docutils literal notranslate"><span class="pre">extract_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_roi_functions.filter_dict_by_value_count"><code class="docutils literal notranslate"><span class="pre">filter_dict_by_value_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_roi_functions.get_indices_per_tag_in_roi"><code class="docutils literal notranslate"><span class="pre">get_indices_per_tag_in_roi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_roi_functions.get_tetras_per_vertex_in_roi"><code class="docutils literal notranslate"><span class="pre">get_tetras_per_vertex_in_roi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_roi_functions.get_unique_tetras_in_roi"><code class="docutils literal notranslate"><span class="pre">get_unique_tetras_in_roi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_roi_functions.get_vertices_inside_cube"><code class="docutils literal notranslate"><span class="pre">get_vertices_inside_cube()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_roi_functions.is_cuboid"><code class="docutils literal notranslate"><span class="pre">is_cuboid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_roi_functions.map_data_to_roi"><code class="docutils literal notranslate"><span class="pre">map_data_to_roi()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-process_simulations.process_simulation_output">process_simulation_output</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id9">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id10">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_simulation_output.convert_to_3d"><code class="docutils literal notranslate"><span class="pre">convert_to_3d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_simulation_output.convert_to_data_and_3d"><code class="docutils literal notranslate"><span class="pre">convert_to_data_and_3d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_simulation_output.convert_to_data_for_reference"><code class="docutils literal notranslate"><span class="pre">convert_to_data_for_reference()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_simulation_output.map_simulation_to_roi"><code class="docutils literal notranslate"><span class="pre">map_simulation_to_roi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.process_simulation_output.process_simulation_output"><code class="docutils literal notranslate"><span class="pre">process_simulation_output()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-process_simulations.validate_simulation_output">validate_simulation_output</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id11">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.validate_simulation_output.collect_validation_results"><code class="docutils literal notranslate"><span class="pre">collect_validation_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.validate_simulation_output.collect_validation_results_for_roi"><code class="docutils literal notranslate"><span class="pre">collect_validation_results_for_roi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.validate_simulation_output.validate_simulations_result"><code class="docutils literal notranslate"><span class="pre">validate_simulations_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process_simulations.validate_simulation_output.validate_simulations_success"><code class="docutils literal notranslate"><span class="pre">validate_simulations_success()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-process_simulations">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_docker_simulations.html">run_docker_simulations module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="start_backend.html">start_backend module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html">server module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="remove_post_processing_results.html">remove_post_processing_results module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">PlanningTool_Backend</a></li>
+      <li class="breadcrumb-item active">process_simulations package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/process_simulations.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="process-simulations-package">
+<h1>process_simulations package<a class="headerlink" href="#process-simulations-package" title="Link to this heading"></a></h1>
+<p>This package handles post-processing of the simulated data to make it usable by the frontend.</p>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<p>Below is a list of modules contained in this package.</p>
+</section>
+<section id="module-process_simulations.process_3d_functions">
+<span id="process-3d-functions"></span><h2>process_3d_functions<a class="headerlink" href="#module-process_simulations.process_3d_functions" title="Link to this heading"></a></h2>
+<p>This module processes 3D simulation data for different configurations and patients.
+It includes functions to map geometry to vertices, create tag-based dictionaries,
+and generate 3D data files in JSON format.</p>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>map_geometry_to_vertex : Map geometry objects to their corresponding vertices, including their indices.</p></li>
+<li><p>create_tag_to_new_index_mapping : Create a mapping from tags to new indices.</p></li>
+<li><p>create_tag_based_dictionary_for_volumes : Create a dictionary based on volume tags.</p></li>
+<li><p>create_3d_data : Create 3D data files for a given ensemble and patient.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="dependencies">
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>json : For reading and writing JSON files.</p></li>
+<li><p>os : For file and directory operations.</p></li>
+<li><p>zlib : For compressing data.</p></li>
+<li><p>collections.defaultdict : For creating default dictionaries.</p></li>
+<li><p>numpy : For numerical operations and statistics.</p></li>
+<li><p>database_params : Custom module for database parameters and paths.</p></li>
+<li><p>process_simulations.process_helper_functions : Custom module for creating tag-based dictionaries and lookup tables.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_3d_functions.create_3d_data">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_3d_functions.</span></span><span class="sig-name descname"><span class="pre">create_3d_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_current_ensemble</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_current_mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/process_simulations/process_3d_functions.html#create_3d_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_3d_functions.create_3d_data" title="Link to this definition"></a></dt>
+<dd><p>Create 3D data files for a given ensemble and patient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_current_ensemble</strong> (<em>str</em>) – Current ensemble ID.</p></li>
+<li><p><strong>_current_mesh</strong> (<em>object</em>) – Mesh object containing simulation data.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Maximum vertex index.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_3d_functions.create_tag_based_dictionary_for_volumes">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_3d_functions.</span></span><span class="sig-name descname"><span class="pre">create_tag_based_dictionary_for_volumes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_volume_tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_tetras</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/process_simulations/process_3d_functions.html#create_tag_based_dictionary_for_volumes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_3d_functions.create_tag_based_dictionary_for_volumes" title="Link to this definition"></a></dt>
+<dd><p>Create a dictionary based on volume tags.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_volume_tags</strong> (<em>list</em>) – List of volume tags.</p></li>
+<li><p><strong>_tetras</strong> (<em>list</em>) – List of tetrahedral elements.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of volume tags and list of used tags.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_3d_functions.create_tag_to_new_index_mapping">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_3d_functions.</span></span><span class="sig-name descname"><span class="pre">create_tag_to_new_index_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_cell_tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/process_simulations/process_3d_functions.html#create_tag_to_new_index_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_3d_functions.create_tag_to_new_index_mapping" title="Link to this definition"></a></dt>
+<dd><p>Create a mapping from tags to new indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>_cell_tags</strong> (<em>list</em>) – List of cell tags.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary mapping tags to new indices and dictionary of tag lengths.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_3d_functions.map_geometry_to_vertex">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_3d_functions.</span></span><span class="sig-name descname"><span class="pre">map_geometry_to_vertex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_geometry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_geometry_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/process_simulations/process_3d_functions.html#map_geometry_to_vertex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_3d_functions.map_geometry_to_vertex" title="Link to this definition"></a></dt>
+<dd><p>Map geometry objects to their corresponding vertices, including their indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_geometry</strong> (<em>list</em>) – List of geometry objects.</p></li>
+<li><p><strong>_geometry_indices</strong> (<em>list</em>) – List of geometry indices.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary mapping vertices to geometry objects and their indices.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-process_simulations.process_data_functions">
+<span id="process-data-functions"></span><h2>process_data_functions<a class="headerlink" href="#module-process_simulations.process_data_functions" title="Link to this heading"></a></h2>
+<p>This module processes simulation data for different configurations and patients.
+It includes functions to convert simulation data to JSON format, create 3D data files,
+and manage the storage and compression of these files.</p>
+<section id="id1">
+<h3>Functions<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>convert_data_to_json : Convert simulation data to JSON format for a given configuration, electrode, and patient.</p></li>
+<li><p>create_one_json_data_file : Create a single JSON data file from multiple simulation outputs for a given configuration and patient.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id2">
+<h3>Dependencies<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>json : For reading and writing JSON files.</p></li>
+<li><p>os : For file and directory operations.</p></li>
+<li><p>shutil : For high-level file operations.</p></li>
+<li><p>zlib : For compressing data.</p></li>
+<li><p>numpy : For numerical operations and statistics.</p></li>
+<li><p>database_params : Custom module for database parameters and paths.</p></li>
+<li><p>process_simulations.process_helper_functions : Custom module for creating tag-based dictionaries.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_data_functions.convert_data_to_json">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_data_functions.</span></span><span class="sig-name descname"><span class="pre">convert_data_to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_current_electrode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_simulations/process_data_functions.html#convert_data_to_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_data_functions.convert_data_to_json" title="Link to this definition"></a></dt>
+<dd><p>Convert simulation data to JSON format for a given configuration, electrode, and patient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_mesh</strong> (<em>object</em>) – Mesh object containing simulation data.</p></li>
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_current_electrode</strong> (<em>str</em>) – Current electrode ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Median, mean, and 95th percentile of the combined magnitudes.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_data_functions.create_one_json_data_file">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_data_functions.</span></span><span class="sig-name descname"><span class="pre">create_one_json_data_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_successful_indices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_simulations/process_data_functions.html#create_one_json_data_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_data_functions.create_one_json_data_file" title="Link to this definition"></a></dt>
+<dd><p>Create a single JSON data file from multiple simulation outputs for a given configuration and patient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+<li><p><strong>_successful_indices</strong> (<em>list</em>) – List of successful simulation indices.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-process_simulations.process_helper_functions">
+<span id="process-helper-functions"></span><h2>process_helper_functions<a class="headerlink" href="#module-process_simulations.process_helper_functions" title="Link to this heading"></a></h2>
+<p>This module provides helper functions for processing simulation data.
+It includes functions to create tag-based dictionaries, validate tags,
+generate lookup tables for tags, and check for numpy ndarrays in data structures.</p>
+<section id="id3">
+<h3>Functions<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>is_valid_tag : Check if a tag is valid based on predefined criteria.</p></li>
+<li><p>create_tag_based_dictionary : Create a dictionary based on tags and their corresponding data.</p></li>
+<li><p>create_tag_look_up_table : Create a lookup table for tags with their descriptions.</p></li>
+<li><p>create_tag_look_up_table_default : Create a default lookup table for tags with their descriptions.</p></li>
+<li><p>custom_switch : Return the description for a given tag.</p></li>
+<li><p>custom_switch_default : Return the default description for a given tag.</p></li>
+<li><p>check_for_ndarrays : Recursively check for numpy ndarrays in a data structure.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id4">
+<h3>Dependencies<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>numpy : For numerical operations and handling numpy ndarrays.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_helper_functions.create_tag_based_dictionary">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_helper_functions.</span></span><span class="sig-name descname"><span class="pre">create_tag_based_dictionary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/process_simulations/process_helper_functions.html#create_tag_based_dictionary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_helper_functions.create_tag_based_dictionary" title="Link to this definition"></a></dt>
+<dd><p>Create a dictionary based on tags and their corresponding data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tags</strong> (<em>list</em>) – List of tags.</p></li>
+<li><p><strong>tag_data</strong> (<em>list</em>) – List of data corresponding to the tags.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of tags and their data, and list of used tags.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_helper_functions.create_tag_look_up_table">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_helper_functions.</span></span><span class="sig-name descname"><span class="pre">create_tag_look_up_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/process_simulations/process_helper_functions.html#create_tag_look_up_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_helper_functions.create_tag_look_up_table" title="Link to this definition"></a></dt>
+<dd><p>Create a lookup table for tags with their descriptions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tags</strong> (<em>list</em>) – List of tags.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of descriptions corresponding to the tags.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_helper_functions.create_tag_look_up_table_default">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_helper_functions.</span></span><span class="sig-name descname"><span class="pre">create_tag_look_up_table_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/process_simulations/process_helper_functions.html#create_tag_look_up_table_default"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_helper_functions.create_tag_look_up_table_default" title="Link to this definition"></a></dt>
+<dd><p>Create a default lookup table for tags with their descriptions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tags</strong> (<em>list</em>) – List of tags.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of default descriptions corresponding to the tags.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_helper_functions.custom_switch">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_helper_functions.</span></span><span class="sig-name descname"><span class="pre">custom_switch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/process_simulations/process_helper_functions.html#custom_switch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_helper_functions.custom_switch" title="Link to this definition"></a></dt>
+<dd><p>Return the description for a given tag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>str</em>) – Tag as a string.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Description of the tag.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_helper_functions.custom_switch_default">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_helper_functions.</span></span><span class="sig-name descname"><span class="pre">custom_switch_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/process_simulations/process_helper_functions.html#custom_switch_default"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_helper_functions.custom_switch_default" title="Link to this definition"></a></dt>
+<dd><p>Return the default description for a given tag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>str</em>) – Tag as a string.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Default description of the tag.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_helper_functions.is_valid_tag">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_helper_functions.</span></span><span class="sig-name descname"><span class="pre">is_valid_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">str_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/process_simulations/process_helper_functions.html#is_valid_tag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_helper_functions.is_valid_tag" title="Link to this definition"></a></dt>
+<dd><p>Check if a tag is valid based on predefined criteria.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>str_tag</strong> (<em>str</em>) – Tag as a string.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the tag is valid, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-process_simulations.process_original_mesh">
+<span id="process-original-mesh"></span><h2>process_original_mesh<a class="headerlink" href="#module-process_simulations.process_original_mesh" title="Link to this heading"></a></h2>
+<p>This module processes the original mesh data for different patients.
+It includes functions to convert mesh data to JSON format, create tag-based dictionaries,
+and manage the storage and compression of these files.</p>
+<section id="id5">
+<h3>Functions<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>convert_mesh_to_json : Convert mesh data to JSON format for a given patient.</p></li>
+<li><p>create_tag_based_dictionary : Create a dictionary based on tags and their corresponding data.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id6">
+<h3>Dependencies<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>json : For reading and writing JSON files.</p></li>
+<li><p>os : For file and directory operations.</p></li>
+<li><p>zlib : For compressing data.</p></li>
+<li><p>numpy : For numerical operations and statistics.</p></li>
+<li><p>database_params : Custom module for database parameters and paths.</p></li>
+<li><p>simnibs.mesh_tools : For reading mesh files.</p></li>
+<li><p>process_simulations.process_helper_functions : Custom module for creating tag lookup tables.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_original_mesh.convert_mesh_to_json">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_original_mesh.</span></span><span class="sig-name descname"><span class="pre">convert_mesh_to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/process_simulations/process_original_mesh.html#convert_mesh_to_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_original_mesh.convert_mesh_to_json" title="Link to this definition"></a></dt>
+<dd><p>Convert mesh data to JSON format for a given patient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> (<em>object</em>) – Mesh object containing simulation data.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_original_mesh.create_tag_based_dictionary">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_original_mesh.</span></span><span class="sig-name descname"><span class="pre">create_tag_based_dictionary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/process_simulations/process_original_mesh.html#create_tag_based_dictionary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_original_mesh.create_tag_based_dictionary" title="Link to this definition"></a></dt>
+<dd><p>Create a dictionary based on tags and their corresponding data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tags</strong> (<em>list</em>) – List of tags.</p></li>
+<li><p><strong>tag_data</strong> (<em>list</em>) – List of data corresponding to the tags.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of tags and their data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-process_simulations.process_roi_functions">
+<span id="process-roi-functions"></span><h2>process_roi_functions<a class="headerlink" href="#module-process_simulations.process_roi_functions" title="Link to this heading"></a></h2>
+<p>This module processes regions of interest (ROI) within 3D simulation data.
+It includes functions to check if vertices are inside a cube, filter data based on value counts,
+and map data to specific ROIs.</p>
+<section id="id7">
+<h3>Functions<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>is_inside_cube : Check if a vertex is inside the cube defined by cube vertices.</p></li>
+<li><p>get_vertices_inside_cube : Get the indices of the vertices that are inside the cube.</p></li>
+<li><p>load_data_from_json : Load data from a JSON file.</p></li>
+<li><p>get_tetras_per_vertex_in_roi : Get the tetrahedra per vertex that are inside the ROI.</p></li>
+<li><p>get_unique_tetras_in_roi : Get unique tetrahedra in the ROI.</p></li>
+<li><p>get_indices_per_tag_in_roi : Get indices per tag in the ROI.</p></li>
+<li><p>filter_dict_by_value_count : Filter a dictionary by the count of values.</p></li>
+<li><p>create_roi_mask : Create a mask for the region of interest (ROI).</p></li>
+<li><p>extract_values : Extract values from the electrode dictionary based on ROI indices and store them in the extracted dictionary.</p></li>
+<li><p>map_data_to_roi : Map simulation data to a region of interest (ROI) and create a JSON file with the mapped data.</p></li>
+<li><p>build_vertex_tag_index_structure : Build a vertex tag index structure for the region of interest (ROI).</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id8">
+<h3>Dependencies<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>json : For reading and writing JSON files.</p></li>
+<li><p>os : For file and directory operations.</p></li>
+<li><p>zlib : For compressing data.</p></li>
+<li><p>collections.Counter : For counting occurrences of values.</p></li>
+<li><p>numpy : For numerical operations and statistics.</p></li>
+<li><p>database_params : Custom module for database parameters and paths.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_roi_functions.build_vertex_tag_index_structure">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_roi_functions.</span></span><span class="sig-name descname"><span class="pre">build_vertex_tag_index_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_vertex_indices_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_indices_per_tag_in_roi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bIsTetra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/process_simulations/process_roi_functions.html#build_vertex_tag_index_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_roi_functions.build_vertex_tag_index_structure" title="Link to this definition"></a></dt>
+<dd><p>Build a vertex tag index structure for the region of interest (ROI).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_vertex_indices_data</strong> (<em>dict</em>) – Dictionary containing vertex indices data.</p></li>
+<li><p><strong>_indices_per_tag_in_roi</strong> (<em>dict</em>) – Dictionary containing indices per tag in the ROI.</p></li>
+<li><p><strong>bIsTetra</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the data is for tetrahedra (default is True).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Vertex tag index structure.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_roi_functions.create_roi_mask">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_roi_functions.</span></span><span class="sig-name descname"><span class="pre">create_roi_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_roi_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/process_simulations/process_roi_functions.html#create_roi_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_roi_functions.create_roi_mask" title="Link to this definition"></a></dt>
+<dd><p>Create a mask for the region of interest (ROI).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+<li><p><strong>_roi_id</strong> (<em>str</em>) – ROI ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_roi_functions.extract_values">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_roi_functions.</span></span><span class="sig-name descname"><span class="pre">extract_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">electrode_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roi_indices_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/process_simulations/process_roi_functions.html#extract_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_roi_functions.extract_values" title="Link to this definition"></a></dt>
+<dd><p>Extract values from the electrode dictionary based on ROI indices and store them in the extracted dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>electrode_dict</strong> (<em>dict</em>) – Dictionary containing electrode data.</p></li>
+<li><p><strong>roi_indices_dict</strong> (<em>dict</em>) – Dictionary containing indices of the region of interest (ROI).</p></li>
+<li><p><strong>extracted_dict</strong> (<em>dict</em>) – Dictionary to store the extracted values.</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – Key to identify the data type (e.g., “Magnitude” or “Vectorfield”).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_roi_functions.filter_dict_by_value_count">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_roi_functions.</span></span><span class="sig-name descname"><span class="pre">filter_dict_by_value_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dictionary</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/process_simulations/process_roi_functions.html#filter_dict_by_value_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_roi_functions.filter_dict_by_value_count" title="Link to this definition"></a></dt>
+<dd><p>Filter a dictionary by the count of values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dictionary</strong> (<em>dict</em>) – Dictionary to filter. Each value is expected to be a list of lists.</p></li>
+<li><p><strong>count</strong> (<em>int</em>) – Minimum count of occurrences for each value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Filtered dictionary.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_roi_functions.get_indices_per_tag_in_roi">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_roi_functions.</span></span><span class="sig-name descname"><span class="pre">get_indices_per_tag_in_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_unique_tetras</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cell_id_per_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/process_simulations/process_roi_functions.html#get_indices_per_tag_in_roi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_roi_functions.get_indices_per_tag_in_roi" title="Link to this definition"></a></dt>
+<dd><p>Get indices per tag in the ROI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_unique_tetras</strong> (<em>numpy.ndarray</em>) – Array of unique tetrahedra in the ROI.</p></li>
+<li><p><strong>_cell_id_per_tag</strong> (<em>dict</em>) – Dictionary of cell IDs per tag.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of indices per tag in the ROI.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_roi_functions.get_tetras_per_vertex_in_roi">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_roi_functions.</span></span><span class="sig-name descname"><span class="pre">get_tetras_per_vertex_in_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tetras_per_vertex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertices_in_roi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/process_simulations/process_roi_functions.html#get_tetras_per_vertex_in_roi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_roi_functions.get_tetras_per_vertex_in_roi" title="Link to this definition"></a></dt>
+<dd><p>Get the tetrahedra per vertex that are inside the ROI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tetras_per_vertex</strong> (<em>dict</em>) – Dictionary of tetrahedra per vertex.</p></li>
+<li><p><strong>vertices_in_roi</strong> (<em>list</em>) – List of vertices inside the ROI.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of tetrahedra per vertex inside the ROI.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_roi_functions.get_unique_tetras_in_roi">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_roi_functions.</span></span><span class="sig-name descname"><span class="pre">get_unique_tetras_in_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tetras_per_vertex_in_roi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/process_simulations/process_roi_functions.html#get_unique_tetras_in_roi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_roi_functions.get_unique_tetras_in_roi" title="Link to this definition"></a></dt>
+<dd><p>Get unique tetrahedra in the ROI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tetras_per_vertex_in_roi</strong> (<em>dict</em>) – Dictionary of tetrahedra per vertex inside the ROI.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of unique tetrahedra in the ROI.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_roi_functions.get_vertices_inside_cube">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_roi_functions.</span></span><span class="sig-name descname"><span class="pre">get_vertices_inside_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cube_vertices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/process_simulations/process_roi_functions.html#get_vertices_inside_cube"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_roi_functions.get_vertices_inside_cube" title="Link to this definition"></a></dt>
+<dd><p>Get the indices of the vertices that are inside the cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> (<em>numpy.ndarray</em>) – A 2D numpy array where each row represents a vertex in the mesh.</p></li>
+<li><p><strong>cube_vertices</strong> (<em>numpy.ndarray</em>) – A 2D numpy array where each row represents a vertex of the cube.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of indices of the vertices that are inside the cube.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_roi_functions.is_cuboid">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_roi_functions.</span></span><span class="sig-name descname"><span class="pre">is_cuboid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_simulations/process_roi_functions.html#is_cuboid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_roi_functions.is_cuboid" title="Link to this definition"></a></dt>
+<dd><p>Check if eight points form a rectangular cuboid.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_roi_functions.map_data_to_roi">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_roi_functions.</span></span><span class="sig-name descname"><span class="pre">map_data_to_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_roi_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/process_simulations/process_roi_functions.html#map_data_to_roi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_roi_functions.map_data_to_roi" title="Link to this definition"></a></dt>
+<dd><p>Map simulation data to a region of interest (ROI) and create a JSON file with the mapped data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+<li><p><strong>_roi_id</strong> (<em>str</em>) – ROI ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-process_simulations.process_simulation_output">
+<span id="process-simulation-output"></span><h2>process_simulation_output<a class="headerlink" href="#module-process_simulations.process_simulation_output" title="Link to this heading"></a></h2>
+<p>This module processes simulation outputs for different configurations and patients.
+It includes functions to convert simulation data to 3D data, validate simulation results,
+and map simulation data to regions of interest (ROIs).</p>
+<section id="id9">
+<h3>Functions<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>convert_to_data_and_3d : Convert simulation output to 3D data and JSON format for a given configuration and patient.</p></li>
+<li><p>convert_to_3d : Convert simulation output to 3D data for a given configuration and patient.</p></li>
+<li><p>convert_to_data_for_reference : Convert reference simulation output to JSON format.</p></li>
+<li><p>process_simulation_output : Process simulation output for a given configuration and patient, including validation and conversion.</p></li>
+<li><p>map_simulation_to_roi : Map simulation data to a region of interest (ROI) for a given configuration, patient, and ROI.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id10">
+<h3>Dependencies<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>json : For reading and writing JSON files.</p></li>
+<li><p>os : For file and directory operations.</p></li>
+<li><p>simnibs.mesh_tools : For reading mesh files.</p></li>
+<li><p>database_params : Custom module for database parameters and paths.</p></li>
+<li><p>process_simulations.process_3d_functions : Custom module for creating 3D data.</p></li>
+<li><p>process_simulations.process_data_functions : Custom module for converting data to JSON and creating combined JSON files.</p></li>
+<li><p>process_simulations.process_roi_functions : Custom module for creating ROI masks and mapping data to ROIs.</p></li>
+<li><p>process_simulations.validate_simulation_output : Custom module for validating simulation success and results.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_simulation_output.convert_to_3d">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_simulation_output.</span></span><span class="sig-name descname"><span class="pre">convert_to_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/process_simulations/process_simulation_output.html#convert_to_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_simulation_output.convert_to_3d" title="Link to this definition"></a></dt>
+<dd><p>Convert simulation output to 3D data for a given configuration and patient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_simulation_output.convert_to_data_and_3d">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_simulation_output.</span></span><span class="sig-name descname"><span class="pre">convert_to_data_and_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/process_simulations/process_simulation_output.html#convert_to_data_and_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_simulation_output.convert_to_data_and_3d" title="Link to this definition"></a></dt>
+<dd><p>Convert simulation output to 3D data and JSON format for a given configuration and patient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_simulation_output.convert_to_data_for_reference">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_simulation_output.</span></span><span class="sig-name descname"><span class="pre">convert_to_data_for_reference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/process_simulations/process_simulation_output.html#convert_to_data_for_reference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_simulation_output.convert_to_data_for_reference" title="Link to this definition"></a></dt>
+<dd><p>Convert reference simulation output to JSON format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_simulation_output.map_simulation_to_roi">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_simulation_output.</span></span><span class="sig-name descname"><span class="pre">map_simulation_to_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_roi_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_simulations/process_simulation_output.html#map_simulation_to_roi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_simulation_output.map_simulation_to_roi" title="Link to this definition"></a></dt>
+<dd><p>Map simulation data to a region of interest (ROI) for a given configuration, patient, and ROI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+<li><p><strong>_roi_id</strong> (<em>str</em>) – Region of Interest ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.process_simulation_output.process_simulation_output">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.process_simulation_output.</span></span><span class="sig-name descname"><span class="pre">process_simulation_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/process_simulations/process_simulation_output.html#process_simulation_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.process_simulation_output.process_simulation_output" title="Link to this definition"></a></dt>
+<dd><p>Process simulation output for a given configuration and patient.
+This includes validating simulation success, converting data to 3D, and validating results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-process_simulations.validate_simulation_output">
+<span id="validate-simulation-output"></span><h2>validate_simulation_output<a class="headerlink" href="#module-process_simulations.validate_simulation_output" title="Link to this heading"></a></h2>
+<p>This module provides functions to validate the success and results of simulations for a given configuration and patient.</p>
+<section id="id11">
+<h3>Functions<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>validate_simulations_success : Validates the success of simulations by checking the success status of each simulation.</p></li>
+<li><p>validate_simulations_result : Placeholder function for validating simulation results.</p></li>
+<li><p>collect_validation_results : Collects validation results and updates them with magnitude statistics.</p></li>
+<li><p>collect_validation_results_for_roi : Collects validation results for a specific ROI and updates them with magnitude statistics for different tags.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id12">
+<h3>Dependencies<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>json : For reading and writing JSON files.</p></li>
+<li><p>os : For file and directory operations.</p></li>
+<li><p>numpy : For numerical operations and statistics.</p></li>
+<li><p>database_params : Custom module for database parameters and paths.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.validate_simulation_output.collect_validation_results">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.validate_simulation_output.</span></span><span class="sig-name descname"><span class="pre">collect_validation_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_simulations/validate_simulation_output.html#collect_validation_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.validate_simulation_output.collect_validation_results" title="Link to this definition"></a></dt>
+<dd><p>Collects validation results for a given configuration and patient.</p>
+<p>This function reads the simulation data and updates the validation results with magnitude statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.validate_simulation_output.collect_validation_results_for_roi">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.validate_simulation_output.</span></span><span class="sig-name descname"><span class="pre">collect_validation_results_for_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_roi_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_simulations/validate_simulation_output.html#collect_validation_results_for_roi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.validate_simulation_output.collect_validation_results_for_roi" title="Link to this definition"></a></dt>
+<dd><p>Collects validation results for a specific ROI (Region of Interest) for a given configuration and patient.</p>
+<p>This function reads the simulation data and updates the validation results with magnitude statistics for different tags.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+<li><p><strong>_roi_id</strong> (<em>str</em>) – ROI ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.validate_simulation_output.validate_simulations_result">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.validate_simulation_output.</span></span><span class="sig-name descname"><span class="pre">validate_simulations_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_simulations/validate_simulation_output.html#validate_simulations_result"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.validate_simulation_output.validate_simulations_result" title="Link to this definition"></a></dt>
+<dd><p>Placeholder function for validating simulation results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="process_simulations.validate_simulation_output.validate_simulations_success">
+<span class="sig-prename descclassname"><span class="pre">process_simulations.validate_simulation_output.</span></span><span class="sig-name descname"><span class="pre">validate_simulations_success</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_patient_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/process_simulations/validate_simulation_output.html#validate_simulations_success"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#process_simulations.validate_simulation_output.validate_simulations_success" title="Link to this definition"></a></dt>
+<dd><p>Validates the success of simulations for a given configuration and patient.</p>
+<p>This function reads the electrode positions from a JSON file and checks the success status of each simulation.
+The results are saved to a validation results JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_id</strong> (<em>str</em>) – Configuration ID.</p></li>
+<li><p><strong>_patient_id</strong> (<em>str</em>) – Patient ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-process_simulations">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-process_simulations" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Docker_Sim.html" class="btn btn-neutral float-left" title="Docker_Sim package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utils.html" class="btn btn-neutral float-right" title="utils package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

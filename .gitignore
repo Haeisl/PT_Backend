@@ -1,0 +1,33 @@
+# ignore every __pycache__ python cache everywhere in the project
+**/__pycache__/
+
+# ignore intellisense .idea folders everywhere
+**/.idea/
+
+# ignore everything in the database
+/database/
+
+# ignore the ernie mesh file as it is too large to push to GitHub
+Docker_Sim/requirements/ernie_my.msh
+**/ernie_my.msh
+ernie_my.msh
+**/*.msh
+
+# ignore everything in the logs dir
+/logs/*
+
+# ignore the simulation_locks.json file
+simulation_locks.json
+
+# ignore everything in the Docker_Sim folder except for some specifics
+Docker_Sim/*
+!Docker_Sim/Dockerfile
+!Docker_Sim/electrodes.py
+!Docker_Sim/functions.py
+!Docker_Sim/param.py
+!Docker_Sim/sim_controller.py
+!Docker_Sim/simulation.py
+!Docker_Sim/svg_to_nodes.py
+!Docker_Sim/isolation_design_ver_1.svg
+!Docker_Sim/logging_utils.py
+!Docker_Sim/environments

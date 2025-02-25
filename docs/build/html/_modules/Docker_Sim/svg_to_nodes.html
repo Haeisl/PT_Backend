@@ -1,0 +1,357 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docker_Sim.svg_to_nodes &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">Docker_Sim.svg_to_nodes</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for Docker_Sim.svg_to_nodes</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">xml.dom</span><span class="w"> </span><span class="kn">import</span> <span class="n">minidom</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">param</span><span class="w"> </span><span class="kn">import</span> <span class="n">d_border</span><span class="p">,</span> <span class="n">d_outerAct</span><span class="p">,</span> <span class="n">d_rect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">svg.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_path</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;planningtool&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="rotate">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.svg_to_nodes.rotate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rotate</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">angle</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rotate a set of 2D points around a given origin by a specified angle.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    origin : tuple or list</span>
+<span class="sd">        A tuple or list of length 2 (ox, oy), the rotation center.</span>
+<span class="sd">    points : iterable</span>
+<span class="sd">        An iterable of (x, y) coordinates to rotate.</span>
+<span class="sd">    angle : float</span>
+<span class="sd">        Rotation angle in radians.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray</span>
+<span class="sd">        A NumPy array of rotated points with shape (N, 2).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ox</span><span class="p">,</span> <span class="n">oy</span> <span class="o">=</span> <span class="n">origin</span>
+    <span class="n">rotated_points</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span>
+        <span class="n">px</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">py</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">qx</span> <span class="o">=</span> <span class="n">ox</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">px</span> <span class="o">-</span> <span class="n">ox</span><span class="p">)</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">py</span> <span class="o">-</span> <span class="n">oy</span><span class="p">)</span>
+        <span class="n">qy</span> <span class="o">=</span> <span class="n">oy</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">px</span> <span class="o">-</span> <span class="n">ox</span><span class="p">)</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">py</span> <span class="o">-</span> <span class="n">oy</span><span class="p">)</span>
+
+        <span class="n">rotated_point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qx</span><span class="p">,</span><span class="n">qy</span><span class="p">])</span>
+        <span class="n">rotated_point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">rotated_point</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">rotated_points</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">rotated_points</span> <span class="o">=</span> <span class="n">rotated_point</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rotated_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rotated_points</span><span class="p">,</span> <span class="n">rotated_point</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">rotated_points</span></div>
+
+
+<div class="viewcode-block" id="multiply_transforms">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.svg_to_nodes.multiply_transforms">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">multiply_transforms</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Multiply two 2D transformation matrices in the format used by certain SVG attributes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a : list or array</span>
+<span class="sd">        The first transformation (6-element list or array).</span>
+<span class="sd">    b : list or array</span>
+<span class="sd">        The second transformation (6-element list or array).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        A list of 6 floats representing the combined transform a*b.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">retval</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># 0</span>
+        <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># 1</span>
+        <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>  <span class="c1"># 2</span>
+        <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>  <span class="c1"># 3</span>
+        <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>  <span class="c1"># 4</span>
+        <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">b</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>   <span class="c1"># 5</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="n">retval</span></div>
+
+
+<div class="viewcode-block" id="get_point_at">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.svg_to_nodes.get_point_at">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_point_at</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve a point on an SVG path at a given normalized distance, applying scale and offset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : svg.path.Path</span>
+<span class="sd">        A parsed SVG path object (from svg.path).</span>
+<span class="sd">    distance : float</span>
+<span class="sd">        A float in [0,1] indicating the fractional distance along the path.</span>
+<span class="sd">    scale : float</span>
+<span class="sd">        A float that scales the resulting x and y coordinates.</span>
+<span class="sd">    offset : complex or tuple</span>
+<span class="sd">        A complex number (or tuple converted to complex) to translate the point.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple (x, y) for the point at the specified location on the path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="n">offset</span>
+    <span class="n">pos</span> <span class="o">*=</span> <span class="n">scale</span>
+    <span class="k">return</span> <span class="n">pos</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">imag</span></div>
+
+
+
+<div class="viewcode-block" id="points_from_path">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.svg_to_nodes.points_from_path">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">points_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate points along an SVG path with a given density, scale, and offset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : svg.path.Path</span>
+<span class="sd">        A parsed SVG path object.</span>
+<span class="sd">    density : float</span>
+<span class="sd">        A float controlling how many samples to take per unit length of the path.</span>
+<span class="sd">    scale : float</span>
+<span class="sd">        A float factor to scale each (x, y) coordinate.</span>
+<span class="sd">    offset : complex or tuple</span>
+<span class="sd">        A complex number or tuple that offsets each point.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    generator</span>
+<span class="sd">        A generator yielding (x, y) coordinate pairs sampled from the path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">length</span><span class="p">()</span> <span class="o">*</span> <span class="n">density</span><span class="p">)</span>
+    <span class="n">last_step</span> <span class="o">=</span> <span class="n">step</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">last_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">get_point_at</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">for</span> <span class="n">distance</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">step</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">get_point_at</span><span class="p">(</span>
+            <span class="n">path</span><span class="p">,</span> <span class="n">distance</span> <span class="o">/</span> <span class="n">last_step</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="points_from_doc">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.svg_to_nodes.points_from_doc">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">points_from_doc</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract points from all &lt;path&gt; elements in an SVG DOM document.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    doc : xml.dom.minidom.Document</span>
+<span class="sd">        A minidom parsed SVG document object.</span>
+<span class="sd">    density : float, optional</span>
+<span class="sd">        A float controlling sampling density along each path.</span>
+<span class="sd">    scale : float, optional</span>
+<span class="sd">        A float scale factor applied to each point.</span>
+<span class="sd">    offset : tuple, optional</span>
+<span class="sd">        A tuple (offset_x, offset_y) used for translation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        A list of (x, y) floats representing sampled points from all paths.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">offset</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">1</span><span class="n">j</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">parse_path</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;d&quot;</span><span class="p">)):</span>
+            <span class="n">points</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">points_from_path</span><span class="p">(</span>
+                <span class="n">path</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">offset</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">points</span></div>
+
+
+<div class="viewcode-block" id="rescale_linear">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.svg_to_nodes.rescale_linear">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rescale_linear</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">new_min</span><span class="p">,</span> <span class="n">new_max</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rescale a 2D NumPy array to a new range [new_min, new_max] along each dimension.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array : numpy.ndarray</span>
+<span class="sd">        A NumPy array of shape (N, 2), where the first column is x-coordinates</span>
+<span class="sd">        and the second column is y-coordinates.</span>
+<span class="sd">    new_min : float</span>
+<span class="sd">        The new minimum value after rescaling.</span>
+<span class="sd">    new_max : float</span>
+<span class="sd">        The new maximum value after rescaling.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray</span>
+<span class="sd">        The modified array, also returned for convenience.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">minimum_x</span><span class="p">,</span> <span class="n">maximum_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">array</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">array</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">m_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_max</span> <span class="o">-</span> <span class="n">new_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">maximum_x</span> <span class="o">-</span> <span class="n">minimum_x</span><span class="p">)</span>
+    <span class="n">b_x</span> <span class="o">=</span> <span class="n">new_min</span> <span class="o">-</span> <span class="n">m_x</span> <span class="o">*</span> <span class="n">minimum_x</span>
+    <span class="n">array</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">m_x</span> <span class="o">*</span> <span class="n">array</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">b_x</span>
+
+    <span class="n">minimum_y</span><span class="p">,</span> <span class="n">maximum_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">array</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">array</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">m_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_max</span> <span class="o">-</span> <span class="n">new_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">maximum_y</span> <span class="o">-</span> <span class="n">minimum_y</span><span class="p">)</span>
+    <span class="n">b_y</span> <span class="o">=</span> <span class="n">new_min</span> <span class="o">-</span> <span class="n">m_y</span> <span class="o">*</span> <span class="n">minimum_y</span>
+    <span class="n">array</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">m_y</span> <span class="o">*</span> <span class="n">array</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">b_y</span>
+
+    <span class="k">return</span> <span class="n">array</span></div>
+
+
+<div class="viewcode-block" id="svg_to_nodes">
+<a class="viewcode-back" href="../../Docker_Sim.html#Docker_Sim.svg_to_nodes.svg_to_nodes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">svg_to_nodes</span><span class="p">(</span><span class="n">svg_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rotation_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert an SVG file (containing one or more paths) into a NumPy array of 2D points.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    svg_file : str</span>
+<span class="sd">        Path to an SVG file that defines shape outlines via &lt;path&gt; elements.</span>
+<span class="sd">    rotation_angle : float, optional</span>
+<span class="sd">        The angle (in degrees) by which to rotate the resulting points about (0,0).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray</span>
+<span class="sd">        A NumPy array of shape (N, 2), containing the processed (x, y) points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#svg_file = param.isolation_shape  # without dots inside isoalation, correct order of paths (from top-left corner, clockwise)</span>
+
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">minidom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">svg_file</span><span class="p">)</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">points_from_doc</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Isolation vertices number = </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># x and y are symmetric about zero</span>
+    <span class="n">points_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">),</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">points_np</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">points_np</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">points_np</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]))</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">points_np</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">points_np</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">points_np</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]))</span><span class="o">/</span><span class="mi">2</span>
+
+    <span class="n">new_max</span> <span class="o">=</span> <span class="n">d_rect</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="n">d_outerAct</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="n">d_border</span> <span class="c1"># 1/2 of the line between peripheral electrodes + peripheral electrodes radius + size of silicon pad after electrode border</span>
+
+    <span class="n">points_np</span> <span class="o">=</span> <span class="n">rescale_linear</span><span class="p">(</span><span class="n">points_np</span><span class="p">,</span> <span class="o">-</span><span class="n">new_max</span><span class="p">,</span> <span class="n">new_max</span><span class="p">)</span>
+
+    <span class="n">points_np</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">points_np</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">points_np</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">points_np</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># rotate around 0 to check influence of the shape on the result</span>
+    <span class="n">points_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rotate</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">points_np</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">)))</span>
+
+    <span class="n">points_np</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">points_np</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">points_np</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">points_np</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">doc</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">points_np</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,354 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>process_simulations.process_3d_functions &mdash; Epilepsy Planning Tool - Backend 27.02.2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe2bba21"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Epilepsy Planning Tool - Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">PlanningTool_Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Epilepsy Planning Tool - Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">process_simulations.process_3d_functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for process_simulations.process_3d_functions</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module processes 3D simulation data for different configurations and patients.</span>
+<span class="sd">It includes functions to map geometry to vertices, create tag-based dictionaries,</span>
+<span class="sd">and generate 3D data files in JSON format.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+<span class="sd">    - map_geometry_to_vertex : Map geometry objects to their corresponding vertices, including their indices.</span>
+<span class="sd">    - create_tag_to_new_index_mapping : Create a mapping from tags to new indices.</span>
+<span class="sd">    - create_tag_based_dictionary_for_volumes : Create a dictionary based on volume tags.</span>
+<span class="sd">    - create_3d_data : Create 3D data files for a given ensemble and patient.</span>
+
+<span class="sd">Dependencies</span>
+<span class="sd">------------</span>
+<span class="sd">    - json : For reading and writing JSON files.</span>
+<span class="sd">    - os : For file and directory operations.</span>
+<span class="sd">    - zlib : For compressing data.</span>
+<span class="sd">    - collections.defaultdict : For creating default dictionaries.</span>
+<span class="sd">    - numpy : For numerical operations and statistics.</span>
+<span class="sd">    - database_params : Custom module for database parameters and paths.</span>
+<span class="sd">    - process_simulations.process_helper_functions : Custom module for creating tag-based dictionaries and lookup tables.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">simnibs</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_tools</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">process_simulations.process_helper_functions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">create_tag_based_dictionary</span><span class="p">,</span>
+    <span class="n">create_tag_look_up_table</span><span class="p">,</span>
+    <span class="n">is_valid_tag</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="map_geometry_to_vertex">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_3d_functions.map_geometry_to_vertex">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">map_geometry_to_vertex</span><span class="p">(</span><span class="n">_geometry</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_geometry_indices</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Map geometry objects to their corresponding vertices, including their indices.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _geometry : list</span>
+<span class="sd">        List of geometry objects.</span>
+<span class="sd">    _geometry_indices : list</span>
+<span class="sd">        List of geometry indices.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary mapping vertices to geometry objects and their indices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vertex_to_tetra</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_geometry_object</span><span class="p">,</span> <span class="n">_geometry_index</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_geometry</span><span class="p">,</span> <span class="n">_geometry_indices</span><span class="p">):</span>
+        <span class="n">_geometry_object_tuple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="k">for</span> <span class="n">vertex</span> <span class="ow">in</span> <span class="n">_geometry_object</span>
+        <span class="p">)</span>  <span class="c1"># Convert the cell array to a tuple once per cell</span>
+        <span class="k">for</span> <span class="n">vertex</span> <span class="ow">in</span> <span class="n">_geometry_object</span><span class="p">:</span>
+            <span class="n">vertex_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">vertex</span><span class="p">)</span>
+            <span class="c1"># Include both the geometry object tuple and its index in the structure</span>
+            <span class="k">if</span> <span class="n">vertex_str</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vertex_to_tetra</span><span class="p">:</span>
+                <span class="n">vertex_to_tetra</span><span class="p">[</span><span class="n">vertex_str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="n">_geometry_object_tuple</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">_geometry_index</span><span class="p">))</span>
+                <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vertex_to_tetra</span><span class="p">[</span><span class="n">vertex_str</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">_geometry_object_tuple</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">_geometry_index</span><span class="p">))</span>
+                <span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">vertex_to_tetra</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_tag_to_new_index_mapping">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_3d_functions.create_tag_to_new_index_mapping">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_tag_to_new_index_mapping</span><span class="p">(</span><span class="n">_cell_tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a mapping from tags to new indices.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _cell_tags : list</span>
+<span class="sd">        List of cell tags.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Dictionary mapping tags to new indices and dictionary of tag lengths.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tag_to_new_index</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">tag_length_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">_cell_tags</span><span class="p">:</span>
+        <span class="n">str_tag</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_valid_tag</span><span class="p">(</span><span class="n">str_tag</span><span class="p">):</span>
+            <span class="n">tag_to_new_index</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">str_tag</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">tag_to_new_index</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">str_tag</span><span class="p">,</span> <span class="p">[]))</span>
+            <span class="p">)</span>
+            <span class="n">tag_length_dict</span><span class="p">[</span><span class="n">str_tag</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_to_new_index</span><span class="p">[</span><span class="n">str_tag</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">tag_to_new_index</span><span class="p">,</span> <span class="n">tag_length_dict</span></div>
+
+
+
+<div class="viewcode-block" id="create_tag_based_dictionary_for_volumes">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_3d_functions.create_tag_based_dictionary_for_volumes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_tag_based_dictionary_for_volumes</span><span class="p">(</span><span class="n">_volume_tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_tetras</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a dictionary based on volume tags.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _volume_tags : list</span>
+<span class="sd">        List of volume tags.</span>
+<span class="sd">    _tetras : list</span>
+<span class="sd">        List of tetrahedral elements.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Dictionary of volume tags and list of used tags.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">volume_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">used_tags</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Building Dictionary...&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_volume_tags</span><span class="p">,</span> <span class="n">_tetras</span><span class="p">):</span>
+        <span class="n">str_tag</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_valid_tag</span><span class="p">(</span><span class="n">str_tag</span><span class="p">):</span>
+            <span class="c1"># If data is a numpy ndarray, convert it to a list</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">volume_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">str_tag</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">volume_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">volume_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">used_tags</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+
+    <span class="n">used_tags</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">used_tags</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">volume_dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">used_tags</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="create_3d_data">
+<a class="viewcode-back" href="../../process_simulations.html#process_simulations.process_3d_functions.create_3d_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_3d_data</span><span class="p">(</span><span class="n">_current_ensemble</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_current_mesh</span><span class="p">:</span> <span class="n">mesh_tools</span><span class="o">.</span><span class="n">Msh</span><span class="p">,</span> <span class="n">_patient_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create 3D data files for a given ensemble and patient.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _current_ensemble : str</span>
+<span class="sd">        Current ensemble ID.</span>
+<span class="sd">    _current_mesh : object</span>
+<span class="sd">        Mesh object containing simulation data.</span>
+<span class="sd">    _patient_id : str</span>
+<span class="sd">        Patient ID.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Maximum vertex index.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tags... &quot;</span><span class="p">)</span>
+    <span class="n">split_index</span> <span class="o">=</span> <span class="n">_current_mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">triangles</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">mesh_tags</span> <span class="o">=</span> <span class="n">_current_mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span><span class="p">[:</span><span class="n">split_index</span><span class="p">]</span>
+    <span class="n">volume_tags</span> <span class="o">=</span> <span class="n">_current_mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span><span class="p">[</span><span class="n">split_index</span><span class="p">:]</span>
+    <span class="n">tag_indexing_dict</span><span class="p">,</span> <span class="n">tag_length_dict</span> <span class="o">=</span> <span class="n">create_tag_to_new_index_mapping</span><span class="p">(</span>
+        <span class="n">_current_mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cell Indices...&quot;</span><span class="p">)</span>
+    <span class="n">cell_indices_in_main_array</span> <span class="o">=</span> <span class="n">_current_mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">elm_number</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">mesh_cell_indices</span> <span class="o">=</span> <span class="n">cell_indices_in_main_array</span><span class="p">[:</span><span class="n">split_index</span><span class="p">]</span>
+    <span class="n">volume_cell_indices</span> <span class="o">=</span> <span class="n">cell_indices_in_main_array</span><span class="p">[</span><span class="n">split_index</span><span class="p">:]</span>
+    <span class="n">all_cell_index_dict</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">create_tag_based_dictionary</span><span class="p">(</span>
+        <span class="n">_current_mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">tag1</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">cell_indices_in_main_array</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Triangles... &quot;</span><span class="p">)</span>
+    <span class="n">triangles</span> <span class="o">=</span> <span class="n">_current_mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span><span class="p">[:</span><span class="n">split_index</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">meshes_dict</span><span class="p">,</span> <span class="n">mesh_tag_list</span> <span class="o">=</span> <span class="n">create_tag_based_dictionary</span><span class="p">(</span><span class="n">mesh_tags</span><span class="p">,</span> <span class="n">triangles</span><span class="p">)</span>
+    <span class="n">triangles_per_vertex</span> <span class="o">=</span> <span class="n">map_geometry_to_vertex</span><span class="p">(</span><span class="n">triangles</span><span class="p">,</span> <span class="n">mesh_cell_indices</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tetras... &quot;</span><span class="p">)</span>
+    <span class="n">tetras</span> <span class="o">=</span> <span class="n">_current_mesh</span><span class="o">.</span><span class="n">elm</span><span class="o">.</span><span class="n">node_number_list</span><span class="p">[</span><span class="n">split_index</span><span class="p">:]</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">volume_dict</span><span class="p">,</span> <span class="n">volume_tag_list</span> <span class="o">=</span> <span class="n">create_tag_based_dictionary_for_volumes</span><span class="p">(</span>
+        <span class="n">volume_tags</span><span class="p">,</span> <span class="n">tetras</span>
+    <span class="p">)</span>
+    <span class="n">volume_raw_dict</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">create_tag_based_dictionary</span><span class="p">(</span><span class="n">volume_tags</span><span class="p">,</span> <span class="n">tetras</span><span class="p">)</span>
+    <span class="n">tetras_per_vertex</span> <span class="o">=</span> <span class="n">map_geometry_to_vertex</span><span class="p">(</span><span class="n">tetras</span><span class="p">,</span> <span class="n">volume_cell_indices</span><span class="p">)</span>
+
+    <span class="n">all_tags</span> <span class="o">=</span> <span class="n">mesh_tag_list</span> <span class="o">+</span> <span class="n">volume_tag_list</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Vertices... &quot;</span><span class="p">)</span>
+    <span class="n">_max_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">meshes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">t_max_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">t_max_index</span> <span class="o">&gt;</span> <span class="n">_max_index</span><span class="p">:</span>
+            <span class="n">_max_index</span> <span class="o">=</span> <span class="n">t_max_index</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">volume_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">t_max_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">t_max_index</span> <span class="o">&gt;</span> <span class="n">_max_index</span><span class="p">:</span>
+            <span class="n">_max_index</span> <span class="o">=</span> <span class="n">t_max_index</span>
+
+    <span class="n">vertices</span> <span class="o">=</span> <span class="n">_current_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_coord</span><span class="p">[:</span> <span class="n">_max_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Descriptions...&quot;</span><span class="p">)</span>
+    <span class="n">mesh_descriptions</span> <span class="o">=</span> <span class="n">create_tag_look_up_table</span><span class="p">(</span><span class="n">mesh_tag_list</span><span class="p">)</span>
+    <span class="n">volume_descriptions</span> <span class="o">=</span> <span class="n">create_tag_look_up_table</span><span class="p">(</span><span class="n">volume_tag_list</span><span class="p">)</span>
+
+    <span class="n">merged_data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;vertices&quot;</span><span class="p">:</span> <span class="n">vertices</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+        <span class="s2">&quot;meshes&quot;</span><span class="p">:</span> <span class="n">meshes_dict</span><span class="p">,</span>
+        <span class="s2">&quot;volumes&quot;</span><span class="p">:</span> <span class="n">volume_dict</span><span class="p">,</span>
+        <span class="s2">&quot;volumes_raw&quot;</span><span class="p">:</span> <span class="n">volume_raw_dict</span><span class="p">,</span>
+        <span class="s2">&quot;mesh_tags&quot;</span><span class="p">:</span> <span class="n">mesh_tag_list</span><span class="p">,</span>
+        <span class="s2">&quot;volume_tags&quot;</span><span class="p">:</span> <span class="n">volume_tag_list</span><span class="p">,</span>
+        <span class="s2">&quot;all_tags&quot;</span><span class="p">:</span> <span class="n">all_tags</span><span class="p">,</span>
+        <span class="s2">&quot;mesh_descriptions&quot;</span><span class="p">:</span> <span class="n">mesh_descriptions</span><span class="p">,</span>
+        <span class="s2">&quot;volume_descriptions&quot;</span><span class="p">:</span> <span class="n">volume_descriptions</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating JSON Files...&quot;</span><span class="p">)</span>
+    <span class="n">save_dir</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">DATABASE_PATHS</span><span class="p">[</span><span class="s2">&quot;process&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_patient_id</span> <span class="o">/</span> <span class="n">_current_ensemble</span>
+    <span class="n">save_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">merged_data</span><span class="p">,</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_current_ensemble</span><span class="si">}</span><span class="s2">_3d_data.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating JSON Files for individual data...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;tetras_per_vertex...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">tetras_per_vertex</span><span class="p">,</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_current_ensemble</span><span class="si">}</span><span class="s2">_tetras_per_vertex.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;triangles_per_vertex...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">triangles_per_vertex</span><span class="p">,</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_current_ensemble</span><span class="si">}</span><span class="s2">_triangles_per_vertex.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;all_cell_index_dict...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">all_cell_index_dict</span><span class="p">,</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_current_ensemble</span><span class="si">}</span><span class="s2">_cell_index_dict.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;tag_length_dict...&quot;</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="n">tag_length_dict</span><span class="p">,</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_current_ensemble</span><span class="si">}</span><span class="s2">_tag_length_dict.json&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compressed JSON...&quot;</span><span class="p">)</span>
+    <span class="n">compressed_data</span> <span class="o">=</span> <span class="n">zlib</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">merged_data</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="n">compressed_file</span> <span class="o">=</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_current_ensemble</span><span class="si">}</span><span class="s2">_compressed_3d_data.zlib&quot;</span>
+    <span class="n">compressed_file</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_max_index</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, David Hasse, Jan-Vincent Mock, Aleksandr Udalov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
