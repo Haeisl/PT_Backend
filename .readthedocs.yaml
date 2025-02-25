@@ -8,5 +8,15 @@ build:
 conda:
   environment: environment.yml
 
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - --no-cache-dir
+        - -f https://github.com/simnibs/simnibs/releases/download/v4.0.1/simnibs-4.0.1-cp39-cp39-win_amd64.whl
+        - simnibs
+
+
 sphinx:
   configuration: docs/source/conf.py
